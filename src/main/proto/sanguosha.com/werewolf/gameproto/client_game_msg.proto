@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+// 游戏相关.
+
+package com.mapi.werewolf.gameproto;
+
+import "sanguosha.com/werewolf/gameproto/gameconf/game_config.proto";
+import "sanguosha.com/werewolf/gameproto/gamedef/game_def.proto";
+import "sanguosha.com/werewolf/gameproto/gamedefv2/game_def.proto";
+
+// 卡牌游戏结果
+message S_CardGameResult {
+    message GameDetail {
+        int32   left_wolf           = 1;    //剩余狼人
+        int32   kill_wolf           = 2;    //击杀狼人
+        int32   kill_card           = 3;    //击杀卡牌
+        int32   pk_export_hurt      = 4;    //信用伤害
+        int32   check_card_cnt      = 5;    //探查次数
+        int32   passive_turnover    = 6;    //翻开对手
+        int32   active_turnover     = 7;    //主动翻开
+    }
+    gameconf.GameResultType result = 1;
+    int64 delta_coin = 2;
+    int64 delta_exp = 3;
+    int64 delta_star = 4;
+    int32 to_seat = 5;//录像使用
+    int32 old_level = 6;
+    int64 old_exp = 7;
+    int32 new_level = 8;
+    int64 new_exp = 9;
+    gamedef.RewardCode reward_code = 10;
+    repeated  gamedefv2.DBCard    added_cards = 11[packed=false]; //奖励的卡牌
+    repeated  gamedefv2.DecomCard decom_cards = 12[packed=false]; //分解的卡牌
+    repeated  gamedef.Goods       goods_list  = 13[packed=false]; //奖励的道具
+    gamedef.IndulgedPunishType anti_indulged_typ = 14;  //防沉迷状态
+    GameDetail  my_detail = 15; //结果详情
+    GameDetail  opp_detail = 16; //结果详情
+    bool is_got_treasure = 17; //是否获得宝图碎片
+    int32 delta_ethnic_exp = 18; //加势力经验
+    gameconf.GameResultType opp_result = 19; //对手游戏结果
+    int64 delta_happy_coins = 20; //欢乐豆
+}
+
+// 对手逃跑通知
+message S_NtfPlayerRunAway {
+}
+
+// 自己逃跑游戏信息
+message S_NtfMyRunAwayGame {
+    int32  room_mode = 1;
+}

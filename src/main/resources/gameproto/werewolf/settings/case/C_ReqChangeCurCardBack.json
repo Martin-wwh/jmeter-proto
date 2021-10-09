@@ -1,0 +1,39 @@
+{
+  "1": {
+    "package": "cgv2proto",
+    "reqName": "C_ReqChangeCurCardBack",
+    "data": {
+      "card_back": "1"
+    },
+    "expect": {
+      "respName": "S_RespChangeCurCardBack",
+      "data": {}
+    }
+  },
+  "2": {
+    "package": "cgv2proto",
+    "reqName": "C_ReqChangeCurCardBack",
+    "data": {
+      "card_back": "2900"
+    },
+    "expect": {
+      "respName": "S_RespChangeCurCardBack",
+      "data": {
+        "errCode": "ErrBackData"
+      }
+    }
+  },
+  "3": {
+    "package": "cgv2proto",
+    "reqName": "C_ReqChangeCurCardBack",
+    "data": {
+      "card_back": "2"
+    },
+    "expect": {
+      "respName": "S_RespChangeCurCardBack",
+      "data": {
+        "errCode": "ErrNotOwn"
+      }
+    }
+  }
+}

@@ -1,0 +1,2183 @@
+syntax = "proto3";
+
+package com.mapi.werewolf.gamedef;
+
+import "sanguosha.com/werewolf/gameproto/gameconf/game_config.proto";
+
+//// 渠道定义
+enum ChannelType {
+    InvalidChannel = 0;
+    Mobile = 10010;
+    WeiXin = 10011;
+    Guest = 10012;
+    HuaWei = 10013;
+    SDK = 10014;
+    QQ = 10015;
+    WIFIKEY = 10016;
+    //WIFIKEY = 10016;
+    YokaTxz = 10018;
+}
+// 渠道细分companyid
+enum CompanyIDType {
+    InvalidCompanyID = 0;
+    SDK4399 = 18;
+}
+
+//
+message AccountInfo {
+    string account = 1;
+    string ip = 2;
+    bool isAdult = 3;
+    bool isFirstLogin = 4;
+    string sndaID = 5;
+    string ptID = 6;
+    string displayAcc = 7;
+    string pgt              = 8;
+    int32  RealNameStatus   = 9;
+    int32  userAge          = 10;
+    bool   thirdAdult       = 11;
+    int32  thirdRealNameStatus = 12;
+    int32  thirdAge         = 13;
+    string thirdAccountId   = 14;
+    int32  verification     = 15;
+}
+// 账号额外信息
+message ExtraAccountInfo {
+    int32 login_flag = 1;          //登录类型 原channel
+    string channel = 2;            //渠道 原companyid
+    ClientDeviceTyp platform = 3;  //设备类型 //gameconf.ClientDeviceTyp
+    int32 deviceID = 4;            //设备ID
+    string deviceModel = 5;        //设备型号
+    string mac = 6;                //mac地址
+    string advert = 7;             // 广告来源
+}
+// 账号登录服务器记录
+message LoginServer {
+    uint32 serverID = 1; //服务器id
+    string nickName = 2; //玩家名
+    int32  level    = 3; //玩家等级
+    bool   recent   = 4; //最近的
+}
+// 用户登录信息
+message LoginInfo {
+    ClientDeviceTyp deviceType = 1; //设备类型 gameconf.ClientDeviceTyp
+    string          ip         = 2; //ip地址
+    string          region     = 3; //地区
+}
+enum AccountLoginTyp
+{
+	ALTInvalid   = 0; // 账号登录类型
+	ALTSimulator = 1; // 模拟器
+	ALTYoka      = 2; // 游卡通行证
+}
+enum ClientDeviceTyp
+{
+	CDTInvalid   = 0;  // 设备类型 对应枚举值与数据魔方相同
+	CDTAndroid   = 1;  // 安卓
+	CDTIOS       = 2;  // IOS
+	CDTSimulator = 11; // 模拟器即PC
+}
+
+//
+enum RankPeriod {
+    DayRank     = 0;// 日榜
+    WeekRank    = 1;// 周榜
+    MonthRank   = 2;// 月榜
+    ForeverRank = 3;// 无限期榜，实际是40年，高于40年后，32位存时间差值会溢出
+}
+//
+//
+// 用户定义.
+// 这个结构要拆分一下
+message UserData {
+    string  nickname                  = 1;
+    string  avatar                    = 2;
+    int32   sex                       = 3;
+    int64   money                     = 4; // 钻石
+    int64   coin                      = 5; // 金币
+    int64   compete_coin              = 6; // 竞技币
+    int64   exp                       = 7;
+    int64   total_exp                 = 8;
+    int32   level                     = 9;
+    int32   vip                       = 10;
+    string  signature                 = 11;
+    string  figure                    = 12;
+    int32 avatar_border               = 13;
+    int64 avatar_border_expire        = 14; // 截至有效日期时间戳.
+    int64 club_points                 = 15; // 俱乐部积分.
+    int64 match_points                = 16; // 赛事积分.
+    int64 guild_points                = 17; // 公会积分
+    int32 avatar_mic                  = 18;
+    int64 avatar_mic_expire           = 19;
+    DBUserLadderData lastLadderSeason = 20; // 用户天梯数据(玩家打的最后一次。。)
+    string uuid                       = 23;
+    uint32 guildid                    = 24;
+    int32 EntGameCnt                  = 25; //娱乐场次
+    int32 LadderGameCnt               = 26; //天梯场次
+    int32 RaceGameRound               = 27; //竞技轮次
+    int32 CarnivalGameCnt             = 28; //狂欢场次
+    int32 enable_id_certification     = 29; // 实名认证开关 0关闭, 1强制, 2弹性
+    int32 preLadderLv                 = 31; // 上赛季段位(根据配置)
+    int64 gold                        = 32; // 金狼牙
+    int64 happy_coin                  = 33; // 欢乐豆
+}
+//用户详情收集数据
+message UserDetailCollect {
+    int32   card_count          = 1;    //卡牌个数
+    int32   back_count          = 2;    //卡背个数
+    int32   meme_count          = 3;    //表情包个数
+    int32   head_count          = 4;    //头像个数
+    int32   border_count        = 5;    //头像框个数
+    int32   chat_bubble_count   = 6;    //聊天气泡个数
+    int32   skin_cnt            = 7;    //皮肤数量
+}
+//用户详情成就数据
+message UserDetailAchieve {
+	repeated int32 medals   = 1 [packed=false]; // 成就奖章道具id
+    int32          total_pt= 2;
+}
+
+enum SexType {
+    InvalidSex = 0;
+    Male = 1; // 男
+    Female = 2; // 女
+}
+
+enum OnOff {
+    InValidOnOff = 0; //无效
+    On = 1;           //开
+    Off = 2;          //关
+}
+
+message BaseGameScores {
+    int32 win_cnt = 2;
+    int32 lost_cnt = 3;
+    int32 draw_cnt = 4;
+    int32 escape_cnt = 5;
+}
+
+message DBScores {
+    int32          version      = 1;
+    BaseGameScores base_scores  = 2; // 基础成绩记录.
+    bytes          game_scores  = 3; // 游戏具体成绩记录.
+    bytes          game_records = 4; // 按需解析.
+}
+
+message DBUserMatchScores {
+    MatchType type = 2;
+    int32 season = 3;
+    bool sign_up = 9; // 是否已报名.
+    int64 score = 4;// 用于排名.
+    BaseGameScores base_game_scores = 6;
+    bytes game_records = 7; // 按需解析.
+    bool finsh = 10; // 是否已完成(奖励发放).
+}
+
+message MatchID {
+    MatchType type = 1;
+    int32 season = 2;
+}
+
+// Goods 用于描述一种物品, 比如邮件附件中的物品描述.
+message Goods {
+    gameconf.GoodsCategory category = 1;
+    int32  id       = 2;
+    bytes  uid      = 3; // 非合并性道具的唯一id, 合并性道具该值为0.
+    int32  cnt      = 4;
+    int64  time     = 5;
+    bytes  data     = 6;
+    string str_data = 7; // 文本数据, data 和 str_data 只能有一个 (目前是为了json在go中的解析而添加的, 因为[]byte只会解析base64编码的数据)
+}
+
+message MailGoods {
+    repeated gamedef.Goods goods = 1;
+    string from = 2;
+}
+
+// 完整的道具信息，上面的道具定义应该是有问题的，既然道具有uid的属性，为什么上面没有没有该字段，搞不懂！！
+message GoodsInfo{
+    // 原始信息
+    gameconf.GoodsCategory category = 1;
+    int32                  id       = 2;
+    bytes                  uid      = 3; // 非合并性道具的唯一id, 合并性道具该值为0.
+    int32                  cnt      = 4;
+    int64                  time     = 5; // 获得的时间戳.
+    bytes                  data     = 6;
+    string                 str_data = 7;
+    // 替换信息
+    bool            is_replaced_money = 8; // 是否替换成了货币
+    gameconf.ShopMoneyType   money_type        = 9; // 货币类型
+    int64           money_cnt         = 10; // 数量
+}
+
+// 道具替换信息
+message GoodsReplaceInfo {
+   Goods src_goods      = 1;  //原道具
+   Goods replaced_goods = 2; //替换后的道具
+}
+
+// GoodsCategoryGroup 玩家包裹中的道具按类别分类存储.
+message GoodsCategoryGroup {
+    // 道具类别.
+    message Item {
+        // 道具id, 同一类别唯一.
+        int32 id = 2;
+        // 非合并性道具的唯一id, 合并性道具该值为0.
+        bytes uid = 3;
+        // 数量.
+        int32 cnt = 4;
+        // 获得的时间戳, 如果有多个则为最后一个获得的时间.
+        int64 time = 5;
+        // 扩展数据.
+        bytes data = 8;
+
+        // 是否正在使用中.
+        bool using = 6;
+        // 第一次开始使用时间
+        int64 use_time = 7;
+        // 累计过期时间
+        int64 expire = 9;
+    }
+    gameconf.GoodsCategory category = 1;
+    repeated Item items = 2 [packed=false];
+}
+
+//已删除的时限道具信息...
+message DelGoodsCategoryGroup {
+    message Item {
+    int32 id = 1;       //id
+    int64 del_time = 2; //删除时间戳(显示用)
+    int32 cnt = 3;      //
+    int64 pdel_ts = 4;  //服务器删除时间(计算用)
+    }
+    gameconf.GoodsCategory category = 1;
+    repeated Item items = 2 [packed=false];
+}
+
+message DBGoods20201124 {
+    int32 version = 1;
+    repeated GoodsCategoryGroup goods = 2;
+    repeated DelGoodsCategoryGroup del_goods = 3;
+}
+message DBGoods {
+    int32 version = 1;
+    map<int32,GoodsCategoryGroup>      goods       = 2; //key=gameconf.GoodsCategory
+    map<int32,DelGoodsCategoryGroup>   del_goods   = 3; //key=gameconf.GoodsCategory
+    int64                              fetch_expire_time = 4;   //获取过期信息时间
+}
+
+//玩家状态
+enum UserStatus {
+    IDLE = 0;
+    WAITING = 1;
+    GAMEING = 2;
+    OFFLINE = 3;
+    MATCHING = 4;
+}
+
+message FriendStatus {
+    uint64 userid = 1;
+	UserStatus status = 2;
+	int32 room_id = 3;
+	bool able_friend_spec = 4;
+}
+
+message ApplyData {
+    uint64 userid = 1;
+	int64 time = 2;
+	string apply_msg = 3; // 申请信息
+}
+
+enum UpdateMode {
+    InvalueMode = 0;
+    Add = 1;
+    Replace = 2;
+}
+
+message IntimateData {
+    uint64 userid = 1;
+	int32 value= 2;
+	string apply_msg = 3; // 申请信息
+}
+
+message Friend {
+    int32 version                       = 1; //字段版本标识
+	repeated uint64 friendList          = 2 [packed=false];
+	repeated ApplyData applyList        = 3 [packed=false];
+    repeated ApplyData confirmList      = 4 [packed=false];
+    repeated IntimateData IntimateList  = 5 [packed=false];
+    int32 history_add_succ_cnt          = 6; //历史成功添加好友数
+    repeated uint64 blackList           = 7 [packed=false]; //黑名单
+}
+
+message FriendData {
+    uint64  user_id         = 1;
+    int32   level           = 2;
+    int32   ladder_lv       = 3;
+    int32   ladder_star     = 4;
+    UserStatus status       = 5;
+    string  nickname        = 6;
+    int64   offline_ts      = 7;
+    int32   room_id         = 8;
+	bool able_friend_spec   = 9;
+}
+
+message UserGameTallyReq {
+    // 游戏类型.
+    GameModeType game_type = 1;
+    // 游戏结果.
+    gameconf.GameResultType game_result = 2;
+    // 游戏评分, 比赛使用.
+    int32 score = 3;
+    // 游戏复盘记录.
+    GameRecord game_record = 4;
+    // 游戏时长, 单位秒.
+    int32 duration = 5;
+    // 游戏唯一ID.
+    bytes game_uid = 6;
+
+    // 比赛标记.
+    MatchID matchid = 7;
+
+    // 俱乐部标记.
+    int32 clubid = 8;
+    int32 club_points_cfgid = 9;
+}
+
+message UserGameTallyResp {
+    int64 delta_exp = 1;
+    int64 delta_coins = 2;
+    int64 delta_club_points = 3;
+}
+
+enum UserConnectState {
+    // 已连接.
+    Connected = 0;
+    // 断开连接.
+    Disconnected = 1;
+    // 离开, 长时间没操作或者客户端进入后台.
+    Leave = 2;
+    // 玩家已退出, 但游戏中该角色仍需存在.
+    Quit = 3;
+}
+
+// 邮件类型
+enum MailType {
+    Global = 0;  // 全服
+    Users = 1;  // 指定批量用户
+    Condition = 2;  // 按条件领取
+    FreshOpen = 3;  // 开服新手邮件
+    SingleUser = 4;  // 单播用户
+}
+// 邮件过期类型
+enum MailExpireType {
+    ExpServer = 0;  // 全局过期
+    ExpUser = 1;  // 带有用户领取缓冲的过期
+}
+// 邮件状态
+enum MailStatus {
+    None = 0;  // 无
+    Read = 1;  // 已读
+    HasAttachment = 2;  // 有附件
+    GotAttachment = 4;  // 已领奖
+    Expire = 8; //已过期
+    OutPullTime = 16; // 超出可拉取期
+    WithDraw = 32; // 撤回
+    CondNotFit = 64; // 用户条件不满足
+}
+
+// 邮件信息
+message Mail {
+    uint64 uid = 1;
+    int64 time = 2;
+    string subject = 3;
+    string content = 4;
+    //过期时间 unix时间戳
+    int64 expire_time = 5;
+
+    Attachment attachment = 6;
+}
+
+// 附件.
+message Attachment {
+    repeated Goods goods = 2 [packed=false];
+}
+
+// 邮件领取条件
+message MailPickCondition {
+    string channel = 1;         // 渠道字符串 ""表示全渠道
+    int64 min_birthtime = 2;    // 玩家最小注册时间（包含本值）
+    int64 max_birthtime = 3;    //玩家最大注册时间（包含本值）
+    int32 min_lv = 4;           // 玩家最小等级（包含本值）
+    int32 max_lv = 5;           // 玩家最大等级（包含本值）
+    bool judge_multi = 6;        // 是否多次判断 （对应概念->仅首次判断）
+    int32 apk_ver = 7;          // 最低安卓版本号 （包含本值）
+    int32 ios_ver = 8;          // 最低ios版本号（包含本值）
+    int32 pc_ver = 9;           // 最低pc版本号（包含本值）
+}
+
+// DB邮件信息
+message DBMail {
+    uint64 uid = 1;
+    MailType type = 2;
+    int64 send_time = 3;
+    string subject = 4;
+    string content = 5;
+    MailExpireType ex_type = 6;
+    uint32 ex_day = 7;
+    Attachment attachment = 8;
+    MailPickCondition condition = 9;
+    bool is_withdraw = 10;
+    bool is_expired = 11;
+    repeated uint64 to_userids = 12 [packed=false];
+}
+
+// 用户的简要信息, 用于展示. ps:修改这个结构时，一定要清理一下redis中已有的缓存!!!
+message UserSnapshot {
+    string nickname             = 1;
+    string avatar               = 2;
+    int32  avatar_border        = 3;
+    int64  avatar_border_expire = 4; // 截至有效日期时间戳.
+    int32  gender               = 5; // 性别
+    uint32 guild_id             = 6;
+    int32  level                = 7; // 等级
+    int32  ladder_season        = 8; // 天梯赛季
+    int32  ladder_lv            = 9; // 天梯段位
+    int32  ladder_star          = 10;// 天梯当前星数
+    int32  ladder_win           = 11;// 天梯胜场
+    int32  ladder_total         = 12;// 天梯总场
+}
+
+// user离线时间
+message UserOfflineTime {
+    uint64 userid     = 1;
+    int64  offline_ts = 2;// 离线时间戳  -1：在线，0，从未上线，ts：离线
+}
+
+message WeekReward {
+    int32 chestid = 1;  //宝箱id
+    int64 ts      = 2;  //领取时间戳
+}
+
+//封停玩家
+message BanUser {
+    uint64 userid   = 1;  //用户id
+    int64  ctime    = 2;  //创建时间
+    int64  banSec   = 3;  //禁止的秒数
+}
+
+// 用户排名数据, 用于展示.
+message UserInfoForRank {
+    uint64 userid   = 1;
+    string nickname = 2;
+    string avatar   = 3;
+    int64  score    = 4;
+}
+
+// 用户卡牌模式天梯数据，用于展示
+message CGLadderUserSnap {
+    uint64 userid    = 1; //玩家id
+    string nickname  = 2; //昵称
+    string avatar    = 3; //头像
+    int32  level     = 4; //段位
+    int32  star      = 5; //当前星星数
+    int32  win       = 6; //当前赛季胜场数
+    int32  total     = 7; //总比赛场数
+    string longitude = 8; //经度
+    string latitude  = 9; //维度
+    int32 avatarBorder = 10; //头像框
+}
+
+//进入房间模式
+enum JoinMatchWayType {
+    MatchMethod = 0;  //匹配模式
+    RoomMethod  = 1;  //房间模式
+}
+
+enum GameModeType {
+    GMInvalid       = 0;
+    GMCardv2        = 31; // 卡牌2
+}
+
+// 赛事类型类型
+enum MatchType {
+    MatchTypeInvalid = 0;
+    MCardRankV2      = 7;   //v2天梯
+    MCardEntV2       = 8;   //v2娱乐
+    McarnivalV2      = 9;   //v2狂欢
+    MRaceV2          = 10;  //v2竞技
+    MTSabTestV2      = 11;  //v2单安波测试模式
+    MTCarnivalBRFB   = 12;  //白日风暴
+    MTLeague         = 13;  //比赛模式
+    MTCarnivalLeague = 14;  //狂欢战略联盟
+    MTCompete        = 15;  //官方赛事
+    MTMultiPlay      = 16;  //多人模式（斗地主）
+    MTCarnivalXYSY   = 17;  //狂欢-血月盛宴
+    MTFirstNovice    = 18;  //新手场首场
+}
+
+message UserRankMatchData{
+    int32 GameRounds = 1;
+    gameconf.GoodsCategory Category = 2;
+    int32 Goodsid = 3;
+    bytes Goodsuid = 4;
+    uint64 Userid = 5;
+    bool IsAi = 6;
+}
+
+// 聊天频道.
+enum ChatChannelType {
+    InvalidChatChannel = 0;
+    CCWorld  = 1; //世界
+    CCSystem = 2; //系统 个人发bu了言
+    CCGuild  = 3; //公会
+    CCFriend = 4; //好友
+    CCLoudspeaker = 5; //喇叭
+    CCRace = 6; //赛事
+}
+
+// 拥挤程度.
+enum CrowdStatus {
+    InvalidChatChannelStatus = 0;
+    CSIdle = 1;
+    CSNormal = 2;       // no use
+    CSCrowd = 3;
+    CSExCrowd = 4;      // no use
+    CSFull = 5;
+}
+
+// 房间状态快照.
+message RoomSnapshot {
+    gameconf.RoomModeType room_type = 2;
+    bool gaming = 3;
+}
+
+//
+//
+// 俱乐部定义.
+
+// 俱乐部职务, 注意这里的数字按大小排列, 不可随意更改.
+enum ClubJobType {
+    // 无效的.
+    CJInvalid = 0;
+    // 普通.
+    CJNormal = 1;
+    // 精英.
+    CJBackbone = 2;
+    // 助手管理.
+    CJAssistant = 3;
+    // 副会长.
+    CJDeputyLeader = 4;
+    // 会长.
+    CJLeader = 5;
+}
+
+message DBClubMembership {
+    int32 version = 1;
+    uint64 leader = 2;
+    repeated uint64 deputy_leaders = 3;
+    repeated uint64 assistants = 4;
+    repeated uint64 backbones = 5;
+    repeated uint64 normals = 6;
+}
+
+message ClubJoinApply {
+    uint64 userid = 1;
+    int64 time = 2;
+}
+
+message DBClubJoinApply {
+    int32 version = 1;
+    repeated ClubJoinApply apply_list = 2;
+}
+
+
+
+//
+//
+//
+// 游戏定义.
+
+// 游戏开局来源
+enum GameStartFrom {
+    FromUnknow      = 0; // 未知
+    FromInvite      = 1; // 邀请
+    FromPair        = 2; // 匹配
+    FromNoviceGuide = 3; // 新手教学
+    FromFirstNovice = 4; // 新手场首场
+}
+
+enum GameCategory {
+    // 标准狼人杀模式.
+    GStandard = 0;
+    // 一夜狼模式.
+    GOneNight = 1;
+    // 卡牌游戏模式
+    GCard1v1 = 2;
+    // 卡牌2游戏模式
+    GCardv2 = 3;
+
+    // 无效值, 0 值已被 GStandard 占用.
+    GameCategoryInvalid = 11;
+}
+
+// 身份角色.
+enum PlayerRoleType {
+    InvalidRole = 0;
+    //斗地主模式
+    ddz_wolf        = 1;
+    ddz_villager    = 2;
+
+    //1v1 卡牌模式
+    //先手
+    PlayerA = 71;
+    //后手
+    PlayerB = 72;
+}
+
+// 职业.
+enum CareerType {
+    InvalidCareer = 0;
+    Sheriff = 1;
+    Lover = 2;
+}
+
+// 取胜模式.
+enum WinModeType {
+    InvalidWinMode = 0;
+    // 屠边.
+    KillSide = 1;
+    // 屠城.
+    KillAll = 2;
+}
+
+// 阵营.
+enum PartyType {
+    InvalidParty = 0;
+    // 狼人阵营.
+    PWerewolves = 1;
+    // 村名阵营, 即好人方.
+    PVillagers = 2;
+    // 第三方, 人狼恋.
+    PThird = 3;
+}
+
+enum Stage {
+    InvalidStage = 0;
+
+    // 天黑了.
+    SNight = 1;
+    // 狼人开始行动.
+    SWerewolfAction = 2;
+    // 预言家开始行动.
+    SSeerAction = 3;
+    // 女巫开始行动.
+    SWitchAction = 4;
+    // 天亮了.
+    SDawn = 5;
+    // 宣布死讯.
+    SAnnounceDeath = 6;
+    // 遗言.
+    SLastWords = 7;
+    // 白天发言.
+    SSpeakDaytime = 8;
+    // 投票放逐.
+    SVoteForExile = 9;
+    // 宣布投票结果.
+    SVoteForExileResult = 10;
+    // 平票后再次发言.
+    SSpeakAgain = 32;
+    // 平票后再次投票.
+    SVoteForExileAgain = 33;
+
+    // 猎人行动阶段, 死亡时技能 (狼王带人时对非狼人,猎人外的人也通知 SHunterAction).
+    SHunterAction = 12;
+    // 守卫开始行动.
+    SDefenderAction = 14;
+    // 丘比特开始行动.
+    SCupidAction = 15;
+    // 白痴翻身份牌阶段.
+    SIdiot = 16;
+    // 狼王行动阶段.
+    SWolfKingAction = 31;
+
+    // 询问是否要竞选警长.
+    SAskForSheriff = 17;
+    SAskForSheriffResult = 18;
+    // 竞选警长发言.
+    SSpeakForSheriff = 19;
+    // 投票竞选警长.
+    SVoteForSheiff = 20;
+    SVoteForSheiffResult = 21;
+    // 竞选警长平票后再次发言.
+    SSpeakForSheriffAgain = 34;
+    // 竞选警长平票后再次投票.
+    SVoteForSheriffAgain = 35;
+    // 竞选警长结果.
+    SSheriffResult = 22;
+    // 警长选择发言的人.
+    SSheriffChooseSpeaker = 23;
+    SSheriffChooseSpeakerResult = 24;
+    // 警长归票.
+    SSheriffCallForVote = 25;
+    SSheriffCallForVoteResult = 26;
+    // 移交警徽.
+    SSheriffBadge = 27;
+    SSheriffBadgeResult = 28;
+
+    // 游戏结束.
+    SGameEnd = 100;
+
+    // 一夜狼角色行动阶段.
+    SONWerewolfAction = 101;
+    SONMinionAction = 102;
+    SONSeerAction = 103;
+    SONRobberAction = 104;
+    SONTroubleMakerAction = 105;
+    SONInsomniacAction = 106;
+}
+
+enum DeathType {
+    InvalidDead = 0;
+    // 死于晚上, 不告知具体原因.
+    DeathNight = 1;
+    // 放逐, 票死.
+    DeathVote = 2;
+    // 狼刀.
+    DeathWereWolf = 3;
+    // 女巫毒.
+    DeathWitch = 4;
+    // 猎人带走. (狼王带人时对非狼人,猎人外的人也通知 DeathHunter).
+    DeathHunter = 5;
+    // 自曝.
+    DeathExpose = 6;
+    // 狼王带走.
+    DeathWolfKing = 7;
+}
+
+// 游戏成绩记录.
+message GameScores {
+    message Role {
+        PlayerRoleType role = 1;
+        int32 win_cnt = 2;
+        int32 total_cnt = 3;
+    }
+    message Mode {
+        GameModeType game_type = 1;
+        repeated Role roles = 2 [packed=false];
+    }
+    repeated Mode modes = 2;
+
+    // 废弃的字段, 该结构存储于数据库中, 因此需要兼容.
+    repeated Role roles = 1 [packed=false];
+}
+
+// 游戏复盘记录.
+message GameRecord {
+    // 时间.
+    int64 time = 1;
+
+    message Role {
+        uint64 userid = 1;
+        // NOTE 一夜狼模式中虚拟座位也在这里(负数).
+        int32 seatid = 2;
+        PlayerRoleType role = 3;
+        // 原始的身份, 为 0 表示和 role 相同, 一夜狼使用.
+        PlayerRoleType ori_role = 6;
+        string nickname = 4;
+        string avatar = 5;
+    }
+    message Info {
+        repeated Role roles = 1 [packed=false];
+        // enum = 4; delete
+        // 游戏模式, 标准, 一夜狼.
+        GameModeType game_type = 5;
+        // 屠边屠城, 标准模式有效.
+        WinModeType win_mode = 2;
+
+        gameconf.RoomModeType room_type = 3;
+    }
+
+    // 游戏基础信息.
+    Info game_info = 2;
+    // 自己的座位号.
+    int32 your_seatid = 3;
+    // 游戏结果胜利失败.
+    gameconf.GameResultType result = 4;
+    // 获胜阵营.
+    PartyType win_party = 5;
+    // 最后存活的玩家.
+    repeated int32 alives = 6 [packed=false];
+    // 游戏步骤记录.
+    repeated GameStageRecord stage_records = 8 [packed=false];
+}
+
+message GameRecords {
+    repeated GameRecord records = 1;
+}
+
+// 游戏阶段记录.
+message GameStageRecord {
+    Stage stage = 1;
+
+    // 行动结果目标.
+    repeated int32 result_seatids = 2 [packed=false];
+
+    message WitchAction {
+        bool is_cure = 2;
+    }
+    WitchAction witch_action = 4;
+
+    message SeerAction {
+        bool is_bad_identity = 2;
+    }
+    SeerAction seer_action = 5;
+
+    // 一夜狼中, 狼人, 预言家, 强盗目标结果.
+    repeated PlayerRoleType result_roles = 8 [packed=false];
+
+    message Votes {
+        message Vote {
+            // 谁投的.
+            int32 seatid = 1;
+            // 投了谁, 为 0 表示弃权的.
+            int32 target = 2;
+        }
+        // 所有参与投票的(包括超时没投的)都会在这里.
+        repeated Vote votes = 1 [packed=false];
+    }
+    //警长竞选, 白天发言投票
+    Votes votes = 6;
+
+    message Death {
+        DeathType type = 1;
+        // 被谁杀死, 只有当 type 不能确定唯一来源时, 才会赋值 (例如猎人和狼王带人时, 部分人的视角)
+        int32 from_seatid = 2;
+    }
+    Death death = 7;
+}
+
+// 成长任务记录
+message GrowTaskRecord {
+    uint32 level = 1;            // 等级
+    uint32 reward_id = 2;        // 可以领取的成长奖励任务id
+    repeated uint32 id_list = 3; // 正在做的成长任务id
+    bool reward_complete = 4;    // 领取完毕
+}
+
+// 活动任务记录
+message ActTaskInfo {
+    int32 act_id                        = 1; // 活动id
+    int64 last_fresh_time               = 2; // 上次刷新时间
+    repeated uint32 cycle_task_id_list  = 3; // 正在做的日循环任务id
+    repeated uint32 common_task_id_list = 4; // 正在做的普通任务id
+    int64 last_fini_cycle_fresh_time    = 5; // 上次刷新时间
+    int32 fini_cycled_cnt               = 6; // 自动循环任务的接取次数
+    repeated uint32 fini_cycle_task_id_list = 7; // 正在做的自动循环任务id
+}
+
+// 任务数据（已废弃）
+message DBTaskOld {
+    uint32              Version                 = 1;
+    repeated uint32     TaskFiniList            = 2;
+    repeated TaskDoing  TaskDoingList           = 3;
+    int64               ChangeEDTaskTime        = 4; // 【已废弃】
+    repeated GrowTaskRecord GrowRecords         = 5; // 成长任务与成长奖励完成记录
+    ActivityRecord      ActiRecord              = 6; // 活跃值奖励完成记录 【已废弃】
+    int64               TakeEveryDayTime        = 7; // 接取每日任务的时间【已废弃】
+    int32               PickExEveryDayTaskCnt   = 8; // 接取额外每日任务的数量【已废弃】
+    int32               ChangeEDTaskCnt         = 9; // 更换每日任务的次数【已废弃】
+    uint32              ModeTaskId              = 10;// 狂欢模式任务id 【已废弃】
+    uint32              ModePreTaskId           = 11;// 上期狂欢模式任务id【已废弃】
+    repeated uint32     LatestOverMultiTasks    = 12;// 最新领完奖励的multitask
+    int32               ModeActId               = 13;// 狂欢模式活动id
+    repeated uint32     ModeTaskIdList          = 14;// 狂欢模式任务idlist
+    map<int32, ActTaskInfo> ActTaskInfoMap      = 15; //活动-任务信息
+}
+
+// 任务数据
+message DBTask {
+    uint32              Version                 = 1;
+    repeated uint32     TaskFiniList            = 2;// 【已废弃】
+    map<uint32, TaskDoing> TaskDoingMap         = 3;
+    repeated uint32     LatestOverMultiTasks    = 4;// 最新领完奖励的multitask【已废弃】
+    int32               ModeActId               = 5;// 狂欢模式活动id
+    repeated uint32     ModeTaskIdList          = 6;// 狂欢模式任务idlist
+    map<int32, ActTaskInfo> ActTaskInfoMap      = 7;// 活动-任务信息
+    int64               FresherTaskOverTime     = 8;// 曙光任务完结时间【已废弃】
+    int64               MedalDayTaskStartTime   = 9;// 勋章每日任务开始时间【已废弃】
+    map<uint32, TaskDoing> TaskOverMap          = 10;// 已完结的任务信息
+    int64               DayLoopStartTime        = 11;// 日循环开始时间
+    int64               WeekLoopStartTime       = 12;// 周循环开始时间
+    int32               DDZModeActId            = 13;// 斗地主模式活动id
+    int32               DailyMedalTaskChangeCnt = 14;// 每日勋章日任务 日更换次数
+    int32               WeeklyMedalTaskChangeCnt= 15;// 每日勋章周任务 日更换次数
+    repeated uint32     MedalDailyTaskIdList    = 16;// 每日勋章日任务
+	int32               MedelPatchDealCode      = 17;// 勋章里程碑补丁处理标记 0：未处理 1：可接 2：不可接
+    int64               FresherFinalRwdPickTime = 18;// 曙光终极奖励领取时间
+	uint32              MilestoneUnlockDayCnt   = 19;// 新勋章里程碑解锁天数
+    repeated uint32     MilestoneRwdDayList     = 20;// 新勋章里程碑已领奖天数列表
+}
+
+// 客户端用的任务数据
+message TaskDataClient {
+    int64               FresherFinalRwdPickTime = 1;// 曙光终极奖励领取时间
+    uint32              MilestoneUnlockDayCnt   = 2;// 新勋章里程碑解锁天数
+    repeated uint32     MilestoneRwdDayList     = 3 [packed=false];// 新勋章里程碑已领奖天数列表
+}
+
+// 活跃度奖励，类似任务
+message ActivityRecord {
+    int64          last_time_day = 1;   // 上次领取时间(日记录)
+    int64          last_time_week = 2;  // 上次领取时间(周记录)
+    repeated int64 list_taken_day = 3;  // 日领取记录
+    repeated int64 list_taken_week = 4; // 周领取记录
+}
+
+//
+message TaskFiniCondition {
+    uint32       ID = 1;
+    int32        cnt = 2;
+}
+
+//周期累计任务的周期
+message SCSignPeriod {
+    int64 Start = 1; //开始时间
+    int64 End   = 2; //结束时间
+}
+
+// 进行中的任务
+message TaskDoing {
+    uint32       ID = 1;
+    int64        TakeTime = 2;
+    int64        FiniTime = 3;
+    bool         IsReward = 4;
+    repeated TaskFiniCondition   FiniCondList = 5 [packed=false];
+    int64        RewardTime = 6;
+}
+
+//
+// 商店货币类型(已移至globals_type.xlsx)
+//enum ShopMoneyType {
+//    InvalidShop = 0;  // 无效
+//    Diamond     = 1;  // 狼牙
+//    Coin        = 2;  // 金币
+//    MatchPoints = 3;  // 赛事积分
+//    CompeteCoin = 4;  // 竞技币
+//    GuildPoints = 5;  // 公会积分
+//    Gold        = 6;  // 金狼牙
+//    MGoods      = 7;  // 指定道具
+//    RMB         = 8;  // 充值购买
+//    HappyCoin   = 9;  // 欢乐豆
+//}
+
+// 商店限购类型
+enum ShopBuyLimitType {
+    NoLimit = 0;
+    NumLimit = 1;       //数量限购
+    DayLimit = 2;       //每日
+    WeekLimit = 3;      //每周
+    MonthLimit = 4;     //每月
+    RaceLimit = 5;      //按竞技场赛季重置购买信息
+    PointDayNumLimit = 6; //获取后指定天数过期
+}
+
+// 玩家商店数据
+message DBUserShopDataOld {
+    uint32                  Version = 1;
+    repeated ShopGoodsData  ShopGoods = 2;
+    uint32                  MysteryShopRefreshTimes = 3; //神秘商店刷新次数
+    bool                    MysteryShopBeViewed = 4; //神秘商店被查看
+    int64                   MysteryShopLatestRefreshTime = 5; //最近一次刷新时间
+    bytes                   MysteryShopLatestRefreshData = 6; //最近一次刷新结果
+    int64                   MysteryShopFreeRefreshResetTime = 7; //重置时间
+    int64                   MysteryShopLastZeroFreshTime = 8; //上次零点更新时间
+    int64                   MysteryShopLastMiddleFreshTime = 9; //上次12点更新时间
+}
+
+// 玩家商店数据
+message DBUserShopData {
+    uint32                  Version = 1;
+    map<uint32,ShopGoodsData> ShopGoods = 2;
+    uint32                  MysteryShopRefreshTimes = 3; //神秘商店刷新次数
+    bool                    MysteryShopBeViewed = 4; //神秘商店被查看
+    int64                   MysteryShopLatestRefreshTime = 5; //最近一次刷新时间
+    bytes                   MysteryShopLatestRefreshData = 6; //最近一次刷新结果
+    int64                   MysteryShopFreeRefreshResetTime = 7; //重置时间
+    int64                   MysteryShopLastZeroFreshTime = 8; //上次零点更新时间
+    int64                   MysteryShopLastMiddleFreshTime = 9; //上次12点更新时间
+    map<int32,OffPriceData> OffPriceGroup = 10; //特惠组id->每日特惠数据
+}
+
+// 商品数据
+message ShopGoodsData {
+    uint32          GoodsID = 1;
+    uint32          BuyCount = 2;
+    int64           BuyStartTime = 3;
+}
+
+//每日特惠数据
+message OffPriceData {
+    int64   RefreshTime = 1;    //特惠刷新时间
+}
+
+// 玩家礼包数据
+message DBUserGiftData {
+    uint32                  Version = 1;
+    map<uint32, int32>      GTimes = 2;   //礼包id -> 已获取次数
+}
+
+message DBAiVSAiResult {
+    string CfgFileMd5   = 1;    // 配置编号
+    int64 SvrStartTime  = 2;    // 游戏开始时间
+    int32 AID           = 3;    // 先手卡组编号
+    int32 ALv           = 4;    // 先手等级
+    int32 BID           = 5;    // 后手卡组编号
+    int32 BLv           = 6;    // 后手等级
+    string AResult      = 7;    // 比赛结果
+    string BResult      = 8;    // 比赛结果
+    double DurationSec  = 9;    // 比赛时长(秒)
+    int32 DayCnt        = 10;   // 比赛夜晚数
+    int64 GameStartTime = 11;   // 游戏开始时间
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// 各模式赛事分数统计数据
+////////////////////////////////////////////////////////////////////////////////
+//
+
+// 客户端协议使用
+message MatchStatsData {
+    DBRadarData         radar   = 1;
+    DBFunData           fun     = 2;
+    int32               ethnic  = 3;
+}
+
+// 基本分数数据
+message CGScoreBase {
+    int32 winTimes         = 1;     //
+    int32 loseTimes        = 2;     //
+    int32 totalTimes       = 3;     // 总场次
+    int32 matchScore       = 4;     // 匹配分
+}
+// 额外积分数据
+message CGScoreEx {
+}
+// 雷达数据
+message DBRadarData {
+    int32 game_win    = 1;  //胜场数
+    int32 game_total  = 2;  //总场数
+    int32 accurateAvg = 3;  //精准 *100
+    int32 defenseAvg  = 4;  //防御 *100
+    int32 burstAvg    = 5;  //爆发 *100
+    int32 attackAvg   = 6;  //进攻 *100
+    int32 luckyAvg    = 7;  //幸运 *100
+    int32 killWolfAvg    = 8;  //单局平均击杀对方狼人数
+    int32 killAllAvg     = 9;  //单局平均击杀对方卡牌数
+    int32 aliveWolfAvg   = 10;  //单局平均我方存活狼人数
+    int32 dayKillMaxAvg  = 11;  //单局平均单局单日最大击杀卡牌数
+    int32 PKCheckSuccAvg = 12;  //单局平均成功查验次数（查验翻开对方）
+    int32 PKCheckCntAvg  = 13;  //单局平均查验次数
+}
+// redis雷达
+message RadarMinMax {
+    DBRadarData radar_min = 1;
+    DBRadarData radar_max = 2;
+}
+// 趣味数据统计
+message DBFunData {
+    int32 bigWinCnt         = 1;    // 大胜次数：记录当前模式下  比赛结束时双方剩余狼人差的绝对值=4并获胜
+    int32 tinyWinCnt        = 2;    // 险胜次数：记录当前模式下  比赛结束时双方剩余狼人差的绝对值=1并获胜
+    int32 perfectWinCnt     = 3;    // 完胜：   记录当前模式下  比赛结束时双方剩余狼人差的绝对值大于等于5并获胜
+    int32 turnaroundWinCnt  = 4;    // 绝境翻盘：记录当前模式下  当己方只剩一头狼人，且对方此时还有5头及以上狼人，最终获得胜利
+    int32 winStreakCurCnt   = 5;    // 当前连胜
+    int32 winStreakMaxCnt   = 6;    // 最高连胜：记录当前模式下  记录当前模式下最高的连胜局数
+    int32 pkAttackPoints    = 7;    // 信用伤害：记录当前模式下  累计造成的信用点总伤害（最好能够统计溢出伤害，即己方当前信用点是多少，打出的伤害就是多少）
+    int32 killCardCnt       = 8;    // 击杀卡牌：记录当前模式下  除去献祭和牺牲、累计击杀所有狼、神、民卡牌的总数量
+    int32 killWolfCnt       = 9;    // 击杀狼人：记录当前模式下  除去献祭和牺牲、累计击杀卡牌类型为狼人牌的总数量
+    int32 nightKillCnt      = 10;   // 夜刀次数：记录当前模式下  夜晚杀所有狼、神、民卡牌的总数量
+    int32 oneDayKillWolfMax = 11;   // 连杀狼人：记录当前模式下  1天1夜内击杀狼人数量的最大值
+}
+
+///////////////////////////
+// 娱乐模式分数数据
+message DBCGEntScoreData {
+    int32                   version         = 1;
+    CGScoreBase             base            = 2;
+    DBRadarData             radar           = 3;    // 总雷达数据
+    DBFunData                 fun             = 4;    // 总趣味数据
+    map<int32, DBRadarData> ethnic2Radar    = 5;    // 职业雷达数据
+    map<int32, DBFunData>     ethnic2Fun      = 6;    // 职业趣味数据
+}
+///////////////////////////
+// 天梯排位赛blob数据
+message DBLadderScoreMix {
+    int32                       version         = 1;
+    DBRadarData                 radar           = 2;
+    DBFunData                     fun             = 3;
+    map<int32, DBRadarData>     ethnic2Radar    = 4;
+    map<int32, DBFunData>         ethnic2Fun      = 5;
+}
+// 天梯排行数据
+message DBUserLadderData {
+   uint64 userid                = 1;  // 用户id
+   int32 season                 = 2;  // 赛季
+   int32 win_times              = 3;  // 胜场
+   int32 lose_times             = 4;  // 败场
+   int32 total_times            = 5;  // 总场
+   int32 total_star             = 6;  // 星星数
+   int32 level                  = 7;  // 当前段位
+   int32 star                   = 8;  // 当前星数
+   int32 high_level             = 9;  // 该赛季最高段位
+   int32 history_level          = 10; // 历史最高段位
+   int32 reward_flag            = 11; // 是否已领奖，0未领取，1已经领取
+   string name                  = 12; // 赛季名称
+   int32 winStreakMaxCnt        = 13; // 最高连胜
+   int32 winStreakCurCnt        = 14; // 当前连胜
+   int32 loseStreakMaxCnt       = 15; // 最高连败
+   int32 LoseStreakCurCnt       = 16; // 当前连败
+   repeated gamedef.DBCG1v1GameRecord gameRecords = 17 [packed=false]; // 对战记录
+   int32 match_score            = 18; // 匹配分
+   DBLadderScoreMix score_mix   = 19; // 混合分数相关数据(雷达和趣味数据)
+   DBUserLadderHistory history  = 20; // 天梯历史数据
+}
+// 天梯段位保护次数
+message DBLadderProtect {
+    int32 version               = 1; //字段版本标识
+    map<int32, int32> Protects  = 2; //段位 -> 保护次数
+    int32 cur_season            = 3; //当前赛季
+    int32 protect_cnt           = 4; //保护次数
+    int32 cur_lv_game_cnt       = 5; //当前段位游戏次数
+}
+// 天梯玩家历史数据
+message DBUserLadderHistory {
+    int32 version               = 1;    //字段版本标识
+    repeated DBUserLadderHistoryData historyData = 2 [packed=false];    //历史数据
+}
+message DBUserLadderHistoryData {
+   int32 season                 = 1;    // 赛季
+   int32 win_times              = 2;    // 胜场
+   int32 lose_times             = 3;    // 败场
+   int32 total_times            = 4;    // 总场
+   int32 total_star             = 5;    // 星星数
+   int32 level                  = 6;    // 当前段位
+   int32 star                   = 7;    // 当前星数
+   int32 high_level             = 8;    // 该赛季最高段位
+   string name                  = 9;    // 赛季名称
+   int32 winStreakMaxCnt        = 10;   // 最高连胜
+}
+
+///////////////////////
+// 竞技阶段
+enum RaceStage {
+    OutOfRace     = 0;  //场外
+    DecideEthnic  = 1;  //决定种族
+    GroupCard     = 2;  //组卡
+    PairOrGame    = 3;  //匹配或游戏中
+    StrengthCards = 4;  //强化卡牌
+    SettleResult  = 5;  //结算该轮的竞技结果
+}
+message CardCP {
+    int32 ID = 1;
+    Card card1 = 2;
+    Card card2 = 3;
+}
+message Card {
+    int32 RoleID = 1;
+    int32 SkinID = 2;
+}
+message DBRaceScore {
+
+    map<int32, int32> WinStreakNum2Cnt   = 12;  //连胜次数统计
+}
+// 竞技模式数据
+message DBRaceMatch {
+    int32                           Version         = 1;
+    RaceStage                       Stage           = 2;
+    repeated gamedef.Card           Cards           = 3 [packed=false];
+    repeated CardCP                 CardCPs         = 4 [packed=false];
+    int32                           SelectedCPid    = 5;
+    repeated gamedef.Card           CanStrenCards   = 6 [packed=false];
+    DBCG1V1NormalData               NormalData      = 7;  //当前轮次
+    bool                            Rewarded        = 8;
+    int32                           max_wins        = 9;  //历史最大胜利数
+    DBCG1V1NormalData               TotalNormalData = 10; //所有轮次
+    int32                           Round           = 11; //轮次序号，一张入场券只能玩一个轮次
+    gameconf.EthnicType             Ethnic          = 12; //种族
+    repeated gameconf.EthnicType    EthnicList      = 13 [packed = false]; //备选种族
+    int32                           ShopActivityID  = 14;       //商店活动id
+    int32                           ShopActivityMaxWins = 15;  //商店活动期间最大胜利数
+    int32                           RoundTotal      = 16; //全赛季总轮次
+    int32                           ReachMaxWinCnt  = 17; //达到最大胜的次数
+    int32                           ReachMaxWinUseGameCnt = 18; //达到最大胜所用总局数
+}
+// 竞技分数数据(待删除20190925)
+message DBCG1V1NormalData {
+    int32 version          = 1;
+    int32 winTimes         = 2;
+    int32 loseTimes        = 3;
+    int32 totalTimes       = 4;
+    int32 winstreakMaxCnt  = 5;  //当前连胜
+    int32 winstreakCurCnt  = 6;  //最高连胜
+    int32 losestreakMaxCnt = 7;  //当前连败
+    int32 losestreakCurCnt = 8;  //最高连败
+    int32 matchScore       = 9;
+    DBFunData funyData     = 10;
+    DBRadarData radar      = 11;  // 雷达数据
+    map<int32, int32> WinStreakNum2Cnt   = 12;  //连胜次数统计
+    map<int32, DBRadarData> ethnic2Radar = 13;  //种族雷达数据
+    bool isChangedCard     = 14; // 是否换过牌
+    int32 reachMaxWinCnt   = 15; //达到最大胜的次数
+    int32 reachMaxWinUseGameCnt = 16; //达到最大胜所用总局数
+}
+
+// 竞技场赛季类型
+enum RaceSeasonType {
+    SeasonAll = 0;   //全部赛季
+    SeasonCur = 1;   //当前赛季
+    SeasonPre = 2;   //上个赛季
+}
+
+message RaceEthnicData {
+    map<int32, int64> WinNum2Cnt       = 1;//胜场数 x胜 -> y次 y 复合型数据 int64= 0（符号） + 24(胜场数) + 39（时间戳）
+    map<int32, int64> WinStreakNum2Cnt = 2;//连胜场数 x连胜 -> y次 y 复合型数据 int64= 0（符号） + 24(胜场数) + 39（时间戳）
+    gamedef.DBRadarData RadarData      = 3;//雷达数据
+    int32                Roundcnt      = 4;//总局次
+    int32                GameCnt       = 5;//总场次
+    int32                WinCnt        = 6;//胜场次
+    gameconf.EthnicType   ethnic       = 7;//种族
+ }
+
+message RaceSeasonData {
+    map<int32, RaceEthnicData> EthnicDatasMap = 1; //种族对应的数据
+}
+
+// 竞技种族数据
+message DBRaceEthnicData {
+    int32 version                           = 1; //字段版本标识
+    map<int32, RaceEthnicData> EthnicDatas  = 2; //种族对应的数据 [已废弃]
+    map<int32, RaceSeasonData> SeasonData   = 3; //赛季对应的数据
+}
+
+// 竞技对战记录 db "race_record"
+message DBRaceRecord{
+    int32 version                    = 1; //字段版本标识
+    repeated RaceRoundRecord Records = 2[packed=false];
+}
+//RaceRoundRecord 竞技一局的记录
+message RaceRoundRecord {
+    int32                   round   = 1;
+    gameconf.EthnicType     ethnic  = 2;
+    int64                   ctime   = 3;
+    repeated RaceGameRecord records = 4[packed=false];
+}
+//RaceGameRecord 竞技对战记录
+message RaceGameRecord {
+   gameconf.GameResultType result          = 1;
+   string                 rival_name      = 2;
+   gamedef.SexType        rival_sex       = 3;
+   gameconf.EthnicType    rival_ethnic    = 4;
+   int32                  rival_streakwin = 5;
+   int32                  game_idx        = 6; //查找录像使用的索引
+}
+
+////////////////////////////////////
+//DBActiveMatch 活动赛分数数据(狂欢)
+message DBActiveMatchs {
+    int32 version                                      = 1; //字段版本标识
+    map<int32, DBCGActiveMatchScoreData> MatchDatas    = 2;
+}
+message DBCGActiveMatchScoreData {
+    CGScoreBase             base            = 1;
+    DBRadarData             radar           = 2;    // 总雷达数据
+    DBFunData                 fun             = 3;    // 总趣味数据
+    map<int32, DBRadarData> ethnic2Radar    = 4;    // 职业雷达数据
+    map<int32, DBFunData>     ethnic2Fun      = 5;    // 职业趣味数据
+}
+
+
+////////////////////////////
+message DBCG1v1GameRecords {
+    int32 version                                  = 1; //字段版本标识
+    repeated gamedef.DBCG1v1GameRecord gameRecords = 2 [packed=false];
+}
+//CG1v1游戏对战记录
+message DBCG1v1GameRecord {
+    gamedef.DBCG1v1UserInfo selfInfo = 1;// 己方信息
+    string selfCardGroup = 2;// 己方卡组
+    gamedef.DBCG1v1UserInfo rivalInfo = 3;// 对手信息
+    string rivalCardGroup = 4;// 对手卡组
+    gameconf.GameResultType result = 5;// 比赛结果
+    int64 startTime = 6;// 对战时间
+}
+
+// //CG1v1游戏 玩家信息
+message DBCG1v1UserInfo {
+    string nickname = 1;
+    string avatar = 2;
+    int32 sex = 3;
+    int32 level = 4;
+    int32 star = 5;
+    uint64 userid = 6;
+    gameconf.EthnicType race_ethnic = 7;// 种族
+    int32 race_streakwin = 8;//竞技连胜
+}
+
+// 结算中游戏统计数据
+message CardGameStatistics {
+    repeated uint32                 card_group      = 1; // 卡组数据
+    repeated CardGameInteractRecord interacts       = 2; // 卡牌交互记录
+    repeated CardGameInteractRecord spell_records   = 3; // 卡牌技能记录
+    int32 days                  = 4;    // 天数
+    int32 aliveWolf             = 5;    // 存活的狼人个数
+    int32 opp_alive_wolf        = 6;    // 对手存活狼人个数
+    int32 pk_attack_export_value= 7;    // 信用攻击总输出
+    bool  is1wolf_vs5_win       = 8;    // 是否1狼对5狼以上胜利
+    int32 checkCardCnt          = 9;    //探查次数：一方本局探查的总次数，探查包括信用探查、村庄探查和技能探查的总次数；信用探查无论成功失败均算一次
+	int32 turnoverOtherCnt      = 10;   //成功翻开：本次对局中己方使用信用探查、翻开技能效果（包括角色牌、新月牌、间谍牌、效果牌）将对手成功翻开的次数
+	int32 activeTurnover        = 11;   //主动翻开：一方本局累计主动翻开己方卡牌的次数，翻开仅包括主动翻开和自曝，不包括召唤、被对手信用探查翻开、被对手技能翻开
+	int32 pkKillOtherCardCnt    = 12;   //使用信用攻击击杀对方卡牌次数
+    int32 dieofferSelfCnt       = 13;   //献祭己方卡牌数
+	int32 summonCnt             = 14;   //召唤己方卡牌数
+	int32 offhandSelfCnt        = 15;   //洗回己方卡牌数
+	int32 turnbackSelfCnt       = 16;   //盖回己方卡牌数
+	int32 newMoonCardCnt        = 17;   //生成新月牌数
+	int32 useMoonCardCnt        = 18;   //使用新月牌数
+	int32 newSpyCardCnt         = 19;   //生成间谍牌数
+	int32 enableSpyCardCnt      = 20;   //生效间谍牌数（使对方抽到间谍牌）
+	int32 useEffectCardCnt      = 21;   //使用效果牌次数
+	int32 cardMaxPkValue        = 22;   //我的卡牌曾达到的最大信用值
+	int32 cardActUpMax          = 23;   //我的卡牌曾达到的最大主动翻开次数
+	bool  only1V1WolfWin        = 24;   //一局中双方只剩一张卡牌并且均为狼人牌的情况下获胜
+	int32 myLastWordSpellCnt    = 25;   //己方累计触发【n】次遗言
+    int32 turnSummonXLCardCnt   = 26;   //己方累计主动翻开/召唤 【n】张带巡逻的卡牌
+    int32 lockOppCardCnt        = 27;   //累计锁定对方【n】张卡牌
+    int32 rescueSelfCardCnt     = 28;   //累计复活己方【n】张卡牌
+    int32 decideCnt             = 29;   //累计触发【n】次决定
+    int32 ctrlOppCardCnt        = 30;   //累计控制敌方【n】张卡牌
+    int32 haveShieldCnt         = 31;   //累计获得【n】次护甲
+    int32 breakOppShieldCnt     = 32;   //累计破坏敌方护甲【n】次
+	map<uint32,int32> dieOfferCardMap = 33; //献祭（≥）【n】个【契灵ID为A（可多选）】的契灵牌。
+	map<int32,int32> dieOfferCTypeMap = 34; //献祭（≥）【n】个【狼/神/民】契灵牌。
+	int32 hzDayKillMaxCnt 	    = 35;   //使用好战在一天内主动消灭（≥）【n】张契灵。
+    int32 copyCardCnt           = 36;   //单局游戏中，复制契灵数 (copycard 次数)
+    int32 maxCheckCardCntInOneDay  = 37; //一天内，最大探查次数 (checkcard 次数)
+	int32 maxCheckCardCntInOneRound = 38; //一回合内，最大探查次数 (checkcard 次数)
+    int32 maxActionInOneRound       = 39; //一回合内，最大行动次数 （包含通用攻击，通用探查，使用技能）
+    map<int32,int32> mixedBloodCopyTgt2Cnt = 40; //混血儿复制对象次数
+    bool  isAllInitWolfExist = 41;      // 是否所有初始狼人仍然存在
+    int32 maxPointedStatusHandCardCnt = 42; //玩家场上同时建立n个以上的特定状态（护甲/飞行/遗言/好战/蛊毒/巡逻/转生）的卡牌
+    map<int32,int32> maxKillCardType2CardCntInOneRound = 43; //单回合内，消灭对手类型卡牌最大张数
+    int32 consumeActpointCnt    = 44; //消耗信用点数
+    int32 poisonKillCnt         = 45; //用蛊毒杀死的牌数
+    int32 summonActCnt          = 46; //己方召唤行为次数
+    int32 dieofferSelfActCnt    = 47; //己方献祭行为次数
+    int32 lockActCnt            = 48; //己方锁定行为次数
+    map<int32,int32> onBoardCardEthnic2Cnt = 49; //上阵卡牌的势力对应的数量
+    map<int32,int32> onBoardCardSkill2Cnt  = 50; //上阵卡牌的技能对应的数量
+    int32 lastWordActionCnt     = 51;   //本局触发遗言次数
+    map<int32,int32> onBoardCardType2Cnt = 52; //上阵卡牌的类型对应的数量
+    int32 useDisasterCardCnt    = 53;   //斗地主中使用灾难牌次数
+    bool allyAliveWolf          = 54;   //是否友方皆有狼人存活
+}
+
+message CardGameInteractRecord {
+    enum InteractType {
+        Attack      = 0;    // 攻击
+        Rescue      = 1;    // 救助
+        Respawn     = 2;    // 复活
+        Kill        = 3;    // 击杀
+        pkCheckSucc = 4;    // 信用探查成功
+        pkAttack    = 5;    // 信用攻击
+    }
+    uint64  source_user = 1; // 发起方
+    int32   source_card = 2; // 发起卡牌
+    int32   skill_id    = 3; // 技能
+    InteractType type   = 4; // 类型
+    uint64  target_user = 5; // 接受方
+    int32   target_card = 6; // 接受卡牌
+    int32   day_night   = 7; // 哪天
+    bool    is_night    = 8; // 是否夜晚
+    bool    IsBlind     = 9; // 盲， 攻击暗置牌
+    int32   dead_typ    = 10;// 死亡方式
+    int32   target_type = 11;// 卡牌操作时身份
+}
+
+// 卡牌游戏数据更新
+message UserCardGameTallyReq {
+    GameModeType        game_type           = 1;  // 游戏类型.
+    gameconf.GameResultType      game_result         = 2;  // 游戏结果.
+    int32               duration            = 3;  // 游戏时长, 单位秒.
+    string              game_uid            = 4;  // 游戏唯一ID.
+    int32               match_score_delta   = 5;  // 对手与自己分差
+    MatchID             matchid             = 6;  // 比赛标记.
+    CardGameStatistics  count               = 7;  // 数据统计
+    DBCG1v1GameRecord   cg1v1GameRecord     = 8;  // 对战记录
+    gameconf.RoomModeType RoomType          = 9;  // 房间类型
+    repeated int32      Roleids             = 10; // 卡组角色id
+    int32               day_num             = 11;  //游戏用了多少天
+    gameconf.EthnicType ethnic              = 12;  //套牌种族
+    int32               game_idx            = 13;  //游戏索引，除了竞技类型有值外，其他都是零
+    bool                first_hand          = 14;  //是否先手
+    int32               game_mission_id     = 15;  //游戏关联的关卡id(历练关卡id)
+    int32               practice_id         = 16;  //练习模式关卡id
+    gameconf.EthnicType rival_ethnic        = 17;  //对手套牌种族
+    bool                rival_is_robot      = 18;  //是否ai
+    int32               rival_robot_cgid    = 19;  //ai的卡组id
+    int32               user1_hand_cards    = 20;  //日志用。。
+    int32               user1_stack_cards   = 21;  //日志用。。
+    int32               user1_grave_cards   = 22;  //日志用
+    string              abnormal_end_reason = 23;  //游戏非正常结束原因
+    int32               novice_guide_round  = 24;  //新手教学关卡
+    int32               diff_happy_coin     = 25;  //欢乐豆增减
+    int32               cg_try_id           = 26;  //限免卡组id
+    gamedef.PlayerRoleType player_role_type = 27;  //玩家角色类型
+}
+
+enum RewardCode {
+    SucessCode     = 0;
+    ExceedMaxLimit = 1; //超过奖励上限
+    NotFitGameTime = 2; //对战时长过短，未达到奖励条件
+    NotRewardMode  = 3; //无奖模式
+    AntiIndulge    = 4; //防沉溺
+}
+enum AwakeSpellTyp {
+    Invalid = 0;
+    LiveCount = 1; // 存活时间
+    DeathCount = 2; // 场上总死亡计数
+}
+
+enum NtfSkillChangeType{
+    NtfSkillChangeTypeInvalid = 0;
+    AddSkill = 1; // 增加技能
+    DeleteSkill = 2; // 删除技能
+}
+
+enum SpellEffect {
+    InvalidEffect = 0;
+    WinEffect = 1;
+    LoseEffect = 2;
+    HitEffect = 3;
+    KillEffect = 4;
+}
+
+enum ConditionType {
+    InvalidCondition = 0;
+    // 花费金币
+    SpendCoin = 1;
+    // 花费钻石
+    SpendDiamond = 2;
+    // 分享
+    Share = 3;
+    // 邀请
+    Invite = 4;
+    // 攻击次数
+    AttackCnt = 5;
+    // 回合次数
+    RoundCnt = 6;
+    // 用户段位
+    DanGrading = 7;
+    // 使用次数
+    UseCnt = 8;
+}
+
+enum BattlePeriod {
+    InvalidBattlePeriod = 0;
+    OneRound = 1;
+    OneGame = 2;
+    WholeGames = 3;
+}
+
+// 卡牌标记
+enum CGCardMark {
+    MarkInvalid = 0;
+}
+
+// 皮肤品质
+enum SkinQuality {
+    SQInvalid   = 0;
+    SQNormal    = 1;  // 普通
+    SQRare      = 2;  // 稀有
+    SQEpic      = 3;  // 史诗
+    SQLegendary = 4;  // 传奇
+    SQLimited   = 5;  // 限定
+}
+
+enum SkinType {
+    InvalidSkin = 0;
+    StaticSkin = 1; //静态
+    DynamicSkin = 2; //动态
+}
+
+// 用户皮肤数据存储
+message DBSkin{
+    int32 version = 1;
+    int32 skin_id = 2;
+    // 是否是时限皮肤
+    bool time_limit = 3;
+    // 过期时间
+    int64 expire_time = 4;
+}
+
+message DBSkins{
+    int32 version                   = 1; //字段版本标识
+    repeated gamedef.DBSkin skins   = 2 [packed=false];
+}
+
+/////////////////////////////////
+// 录像信息
+message RecordTable {
+	int32 TblId = 1;
+	int32 RoomMode = 2;
+	int32 GameMode = 3;
+}
+message RecordPlayer {
+	uint64 Uid = 1;
+	int32  Seat = 2;
+	string NickName = 3;
+	int32  Sex  = 4;
+	gameconf.EthnicType ethnic = 5;
+}
+message RecordResult {
+	uint64 Winner = 1;
+	bool Finished = 2;
+}
+
+message DBGuide {
+    int32 version                               = 1; //字段版本标识
+    repeated int32 FinishedRounds               = 2 [packed=false]; //引导
+    repeated int32 FinishedStrengthenTraining   = 3 [packed=false]; //历练关卡
+    repeated int32 FinishedHelpMission          = 4 [packed=false]; //帮助手册
+}
+//////////////////////////////////////
+// vip记录定义
+message DBVIP {
+    int32 version               = 1; //字段版本标识
+    int32 VIP_level             = 2;             // vip等级
+    int64 ts                    = 3;                    // 时间戳
+    repeated int32 reward_taken = 4[packed=false]; // 福利领取记录
+}
+
+// 冒险模式数据记录定义
+message DBAdventure {
+    int32 version                     = 1; //字段版本标识
+    repeated int32 missions_completed = 2[packed=false]; // 已经通关过的关卡
+    repeated int32 missions_rewarded  = 3[packed=false]; // 领过奖励的关卡
+    int32          last_mission       = 4;               // 最近挑战的关卡
+    string         tour_position      = 5;               // pve地图中头像的位置
+}
+
+// LBS-定位信息
+message LocationData {
+    int32 version        = 1; //字段版本标识
+    string longitude     = 2; // 经度
+    string latitude      = 3; // 纬度
+    string province_code = 4; // 省
+    string city_code     = 5; // 市的唯一code
+    string ad_code       = 6; // 区的唯一code
+    int64 TS             = 7; // 更新的时间戳
+    string province      = 8; // 省对应字符串
+    string city          = 9; // 市对应字符串
+    string area          = 10;// 区对应字符串
+    string country       = 11;// 国家字符串
+}
+
+enum RankLocationType {
+    InvalidLocationType = 0;
+    Province = 1; // 省榜
+    City     = 2; // 市榜
+    Region   = 3; // 区榜
+    Country  = 4; // 国家榜单
+}
+
+// 累计型条件数据
+message DBAccCond {
+    int32 version               = 1; //字段版本标识
+    map<string, int32> CondData = 2;
+}
+
+// 累计签到数据
+message DBAccumulateSign{
+    int32 version           = 1; //字段版本标识
+    int32 SignedCnt         = 2; //已签次数
+    int32 ReplenishSignCnt  = 3; //补签次数
+    int64 LastFreeSignTime  = 4;
+    int32 ExchangeCnt       = 5; //已兑换次数
+    int64 LastExchangeTime  = 6; //上次兑换时间
+}
+
+// 公会宝图
+message DBGuildTreasure {
+    int64 starttime = 1;    //本次活动开始的时间戳
+    int32 cnt = 2;          //收集的数量
+    int32 last_pick_treasure_id = 3; //已领奖的索引
+    int32 last_client_up_cnt = 4; //上传客户端上传的拼接数
+}
+
+message GuildCommissionInfo {
+    int32 id         = 1;
+    int64 begin_time = 2;
+}
+
+// 公会委托
+message DBGuildCommission {
+    int64 starttime                         = 1; //本次活动开始的时间戳
+    int32 lv                                = 2;
+    int32 exp                               = 3;
+    int32 fini_big_cnt                      = 4; //完成大委托的数量
+    int32 fini_small_cnt                    = 5; //完成小委托的数量
+    repeated int32 pick_stage_id_list       = 6[packed=false]; //已领奖的索引
+    repeated int32 pick_lv_list             = 7[packed=false]; //已领奖的索引
+    GuildCommissionInfo doing_big_mission   = 8; //进行中的委托
+    GuildCommissionInfo doing_small_mission = 9; //进行中的委托
+    int32 next_big_id                       = 10; // 下一个大委托
+    int32 next_small_id                     = 11; // 下一个小委托
+    int32 cost_item_cnt                     = 12; // 消耗道具数量
+}
+
+
+// 卡背数据
+message DBCardBack {
+    int32                     version  = 1;
+    map<int32, CardBackItem>  backData = 2;
+    int32                     cur_back = 3;
+    map<int32, int64>         backExpired = 4;  //过期的卡背
+}
+
+// 卡背
+message CardBackItem {
+    int32 ID    = 1; //卡背id
+    int64 CTime = 2; //卡背获得时间
+    int32 Cnt   = 3; //数量
+    int64 expire= 4; //过期时间
+}
+// 过期卡背数据
+message ExpiredBack {
+    int32 ID    = 1; //卡背id
+    int64 expiredTs = 2; //过期时间戳
+}
+
+// 登录或登出
+enum LoginType {
+    Login = 0;
+    Logout = 1;
+}
+
+// 脏词过滤端
+enum FilterTerminal {
+    no_filter = 0; //不需要过滤
+    php       = 1; //php过滤
+    clint     = 2; //客户端本地过滤
+}
+
+// 表情数据
+message DBMixMeme {
+    int32 version = 1;
+    int32 meme1_id = 2;
+    int32 meme2_id = 3;
+    int32 meme3_id = 4;
+}
+// 助力信息
+message DBMixAssist {
+    int32           version    = 1;
+    repeated int32  rewarded_v = 2;
+}
+// 进度条类型奖励数据
+message DBMixBarReward20201126 {
+    int32           version     = 1;
+    repeated int32  rewarded_id = 2;
+}
+message BarRewardData {
+    repeated int32  rewarded_id = 2;
+}
+message DBMixBarReward {
+    int32                     version     = 1;
+    map<int32,BarRewardData>  reward_map  = 2;  // type -> BarRewardData
+}
+// 活动-天梯冲段
+message DBMixActivityLadderLv {
+    int32               version = 1;
+    int32               season  = 2;        //赛季
+    repeated int32      rewarded_lv = 3;    //已奖励lv
+    map<int32,int64>    lv2ts = 4;          //等级达成时间
+}
+// fcm实名奖励
+message DBMixFcm {
+    int32              version = 1;
+    bool               real_name_reward  = 2; //是否已经奖励
+}
+// 新人7日福利
+message DBTotalLoginWelfare {
+    int64 start_time                = 1; //活动起始时间
+    int32 login_day_cnt             = 2; //累计登录天数
+    repeated int32 picked_day_list  = 3[packed=false]; //已领取的天数奖励
+    bool is_send_unpickrwd          = 4; //是否已发未领取奖励
+}
+// 新人7日福利-pc
+message DBTotalLoginWelfarePC {
+    int64 start_time                = 1; //活动起始时间
+    int32 login_day_cnt             = 2; //累计登录天数
+    repeated int32 picked_day_list  = 3[packed=false]; //已领取的天数奖励
+    bool is_send_unpickrwd          = 4; //是否已发未领取奖励
+    int64 last_login_time           = 5; //上次日登录时间
+}
+// 活动-七日狂欢
+message DBMixActivityTask7Day {
+    int32   version     = 1;
+    int64   ts          = 2;    //第一天时间戳
+    int32   day         = 3;    //接了几天了
+    bool    over        = 4;    //是否已经结束
+}
+// 故事奖励数据
+message DBCardStoryData {
+    repeated int32 took_reward_id = 1[packed=false]; //已领取奖励故事id
+}
+//活动兑换
+message ActivityExchangeInfo {
+    int32 exchange_id = 1;
+    int32 exchange_cnt = 2; //已兑换次数
+}
+message ActivityExchangeData {
+    repeated ActivityExchangeInfo exchange_info = 1;
+}
+message DBActivityExchange {
+    map<int32, ActivityExchangeData> exchange_data = 1;
+}
+message DBHistoricHighLadderLv {
+    int32 season = 1;
+    int32 high_level = 2;
+}
+//开卡包相关数据
+message DBCardBagGroupData {
+    int32 lucky_level = 1; //幸运值等级
+    int32 lucky_value = 2; //幸运值
+    bool had_expended_epic_guar =3; // 是否已经消耗紫卡保底
+}
+
+message DBOpenCardBagData {
+    uint32 open_cnt = 1; //开卡包次数
+    map<int32, DBCardBagGroupData> group_data = 2;   //幸运组数据
+}
+
+message DBKeepWelfare {
+    message KeepData {
+        bool is_finish = 1;
+        bool is_toke_reward = 2;
+    }
+
+    bool is_toke = 1;
+    int64 take_time = 2; //接取时间
+    int32 days = 3; //进度，从接取开始多少天了
+    map<int32, KeepData> sched_data = 4; //进度数据
+    bool is_over = 5;
+}
+
+//玩家回归
+message DBPlayerRegress {
+    int64 toke_time = 1;  //触发时间
+    int64 last_sign_time = 2; //上次签到时间
+    map<int32, bool> reward_data = 3; //奖励数据
+}
+
+// 混合数据
+message DBMixData20201126 {
+    int32                   version             = 1;
+    DBMixMeme               meme_data           = 2;     //表情数据
+    DBMixAssist             assist_data         = 3;     //助力数据
+    DBMixBarReward20201126  bar_reward_data     = 4;     //进度条奖励数据
+    DBContSignWelfare       cont_sign_data      = 5;     //连续签到
+    DBMixActivityLadderLv   activity_ladder_lv  = 6;     //活动-天梯冲段数据
+    DBTotalLoginWelfare     login_welf          = 7;     //新人7日福利
+    DBMixActivityTask7Day   task7day            = 8;     //活动-七日狂欢
+    DBCardStoryData         card_story_data     = 9;     //故事
+    DBActivityExchange      exchange_data       = 10;    //活动兑换
+    DBHistoricHighLadderLv  high_ladder_lv      = 11;    //历史天梯最高段位
+    repeated ShopGoodsData  ShopGoods           = 13;    //已领取的免费商品
+    int32                   now_compete_modeid  = 14;    //当前官方赛事的赛季id
+}
+// 混合数据
+message DBMixData {
+    int32                   version             = 1;
+    DBMixMeme               meme_data           = 2;     //表情数据
+    DBMixAssist             assist_data         = 3;     //助力数据
+    DBMixBarReward          bar_reward_data     = 4;     //进度条奖励数据
+    DBContSignWelfare       cont_sign_data      = 5;     //连续签到
+    DBMixActivityLadderLv   activity_ladder_lv  = 6;     //活动-天梯冲段数据
+    DBTotalLoginWelfare     login_welf          = 7;     //新人7日福利
+    DBMixActivityTask7Day   task7day            = 8;     //活动-七日狂欢
+    DBCardStoryData         card_story_data     = 9;     //故事
+    DBActivityExchange      exchange_data       = 10;    //活动兑换
+    DBHistoricHighLadderLv  high_ladder_lv      = 11;    //历史天梯最高段位
+    repeated ShopGoodsData  ShopGoods           = 13;    //已领取的免费商品
+    int32                   now_compete_modeid  = 14;    //当前官方赛事的赛季id
+    DBMixFcm                fcm_data            = 15;    //fcm数据
+    DBOpenCardBagData       open_card_bag_data  = 16;    //开卡包数据
+    bool                    is_appraise_reward  = 17;    //是否已领取评分奖励
+    DBKeepWelfare           keep_data           = 18;    //投放卡牌福利
+    DBPlayerRegress         player_regress_data = 19;    //玩家回归
+    DBTotalLoginWelfarePC   login_welf_pc       = 20;    //pc新人7日福利
+}
+
+//防沉迷惩罚类型
+enum IndulgedPunishType {
+    punish_no       = 0;   // 正常
+    punish_holiday  = 1;   // 节假日超过3小时
+    punish_usual    = 2;   // 平时超过1.5小时
+    punish_night    = 3;   // 晚上22-8不能登录
+    punish_try      = 4;   // 试玩15天内超过1小时
+	punish_verify   = 5;   // 检查实名状态玩1小时
+}
+
+// 成就点数类型
+enum AchievePointType {
+    apt_all     = 0;
+    apt_collect = 1;
+    apt_train   = 2;
+    apt_fight   = 3;
+}
+// 成就
+message DBAchieve {
+    int32 version = 1;
+    int64 all_reward        = 2;
+    int64 collect_value     = 3;    //收集值
+    int64 collect_reward    = 4;    //已领取的奖励
+    int64 train_value       = 5;
+    int64 train_reward      = 6;
+    int64 fight_value       = 7;
+    int64 fight_reward      = 8;
+}
+
+message DBAccountInfo {
+    string account = 1;
+    int32 channel = 2;
+    int64 userid = 3;
+    string wx_openid = 4;
+    int64 mobile = 5;
+    string sign = 6;
+    string salt = 7;
+    int32 expirytime = 8;
+    int32 accflag   = 9;
+    string nickname = 10;
+    string deviceid = 11;
+    string ip = 12;
+    string sgs_account = 13;
+    int32 companyid = 14;
+    string companyidstr = 15;
+    string real_name = 16;
+    string id_card = 17;
+    string sndaid = 18;
+    string ptid = 19;
+    string display_acc = 20;
+}
+
+// 势力等级
+message EthnicLvData {
+    gameconf.EthnicType ethnic = 1;
+    int32 level                = 2;
+    int32 cur_exp              = 3;
+    repeated int32 reward_lvs  = 4 [packed=false];
+}
+// 数据库中势力等级数据
+message DBEthnicLevelData {
+    int32 version = 1; //版本信息
+    map<int32, EthnicLvData> ethnic2Level = 2;
+    bool  is_makeup_402     = 3; //402版本是否已补偿
+    int32 day_total_add_exp = 4; //当天加的总经验
+    int64 day_last_add_ts   = 5; //最后加经验的时间戳
+}
+
+
+// 举报数据
+message DBReportData {
+    sint32 be_reported_cnt                  = 1; //被举报次数
+    sint32 can_report_cnt                   = 2; //可举报次数
+    sint64 last_can_report_reset_time       = 3; //重置时间
+    map<sint32, DBPunishData> punish_data   = 4;
+    string report_game_uid                  = 5; //举报所在的游戏id
+    sint32 posted_mark                      = 6; //邮件发送标志
+}
+
+enum ReportPunishType {
+    punish_invalid         = 0;
+    punish_normal          = 1; //正常
+    punish_reduce_time     = 2; //减少操作时间
+    punish_reduce_income   = 3; //减少收益
+    punish_forbid_match    = 4; //禁止匹配
+    punish_ban_account     = 5; //封停账号
+    punish_warning_mail    = 6; //邮件警告
+}
+
+//举报处罚数据
+message DBPunishData {
+    repeated sint32 parameter1      = 1;
+    sint32 parameter2               = 2;
+    sint32 parameter3               = 3;
+    int64 begin_time                = 4; //开始时间
+}
+
+// 狼王令
+message DBWolfKingMedal {
+    int32 act_id                            = 1; //本次活动id
+    int64 week_starttime                    = 2; //本周开始的时间戳
+    int32 lv                                = 3; //狼王令等级
+    int32 exp                               = 4; //狼王令经验
+    bool is_advanced                        = 5; //是否为进阶版
+    repeated int32 pick_lv_list             = 6[packed=false]; //已领普通等级奖的索引
+    repeated int32 adv_pick_lv_list         = 7[packed=false]; //已领进阶等级奖的索引
+    int32 week_finish_cnt                   = 8; //本周完成计数 [已废弃]
+    bool is_pick_week_reward                = 9; //是否已领本周任务奖励 [已废弃]
+    int32 pick_fulllv_rwd_cnt               = 10;//已领循环宝箱奖励数量
+}
+
+// 用户比赛情况统计
+message DBPKRoomStat {
+    int32 join_cnt                     = 1; //加入比赛次数
+    int64 creat_cnt                    = 2; //创建比赛次数
+    map<uint32, int32> rank2Cnt        = 3; //获得排名的次数
+}
+
+// 用户结算处罚
+message DBPunish {
+    int64 start_ts = 1; //开始统计的时间戳
+    bool in_punish = 2; //是否在被处罚状态
+    int32 sum_lost = 3; //总连输次数
+    map<int32, int32> roomMode2StreakLostCnt  = 4; //房间模式对应连输次数
+}
+
+// pk房间状态
+enum PKRoomStatus {
+    PKInvalid  = 0;    //无效
+    PKWaitingStart = 1;    //等待开始
+    PKFighting = 2;    //进行
+    PKWaitingFightEnd = 3; //等待战斗结束
+    PKRwarding = 4;    //领奖
+}
+// pk房用户状态
+enum PKRoomUserStatus {
+    PKUserInvalid   = 0; //非法
+    PKUserIdle      = 1; //空闲
+    PKUserPKing     = 2; //战斗中
+    PKUserSpect     = 3; //旁观中
+}
+// pk用户信息
+message PKUserInfo{
+    uint64 user_id          = 1;
+    int32 total_cnt         = 2; //比赛总场数
+    int32 win_cnt           = 3; //胜场数
+    int64  last_win_time    = 4; //最近的胜利时刻
+    bool  is_pick_reward    = 5; //是否已领奖
+    PKRoomUserStatus  st    = 6; //pk房用户状态
+    uint32  final_rank      = 7; //最终排名
+    gameconf.RoomModeType room_mode  = 8; //当前所处房间模式
+    int32 room_id           = 9; //当前所处房间id
+    int32 lose_cnt          = 10; //负场数
+}
+
+// 消息数据处理类型
+enum MsgType {
+    DataReset   = 0; //重置
+    DataAdd     = 1; //新增
+    DataRemove  = 2; //移除
+    DataUpdate  = 3; //更新
+}
+
+// 排行榜单
+message PKRankList {
+    uint64 user_id = 1;
+    int32 rank_reward_cnt = 2;
+    int32 win_cnt = 3; //胜场数
+    int32 lose_cnt = 4; //负场数
+    int32 total_cnt = 5; //总场数
+}
+
+// pk房间
+message DBPKRoom {
+    uint32          room_id         = 1; //id
+    uint32          pwd             = 2; //密码
+    int64           creat_time      = 3; //创建时间
+    PKRoomStatus    status          = 4; //pk房间状态
+    int64           status_fresh_time = 5; //状态刷新时间
+    uint64          owner           = 6; //房主
+	repeated PKUserInfo user_list   = 7 [packed=false]; //用户列表
+    uint32          reward_user_cnt = 8; //领奖用户数量
+    repeated PKRankList rank_list   = 9 [packed=false]; //用户排行
+    uint32          total_pk_cnt    = 10; // 总比赛场数
+    uint32          invite_pk_cnt   = 11; // 邀请比赛场数
+    uint32          pair_pk_cnt     = 12; // 匹配比赛场数
+    repeated uint64 quit_userlist   = 13 [packed=false]; //退出用户列表
+    uint32          spectate_cnt    = 14; // 观战计数
+    gameconf.PKMode mode            = 15; // pk模式
+}
+
+// pk房间
+message PKRoomBrief {
+    uint32          room_id     = 1; //id
+    int64           creat_time  = 2; //创建时间
+    uint64          owner       = 3; //房主
+    int32           member_cnt  = 4; //成员数
+    bool            has_pwd     = 5; //是否有密码
+    int64           status_fresh_time = 6; //状态刷新时间
+    gameconf.PKMode mode = 7;        //pk模式
+}
+
+//================福利===============
+//连续签到福利
+message DBContSignWelfare {
+    int32 cont_days = 1; //连续签到天数
+    int64 latest_sign_time = 2; //最近一次签到时间
+    map<int32, bool> had_take_reword = 3;   //已领奖
+    map<int32, bool> not_take_reword = 4;   //未领奖
+    int32 draw_rewarded_times        = 5;   //绘画奖励次数
+    int64 finish_time                = 6;   //完成时间
+}
+
+// 用户官方赛事数据
+message UserCompeteInfo {
+    uint64  UId         = 1;
+	uint32  TotalCnt    = 2;
+	uint32  WinCnt      = 3;
+	uint32  LoseCnt     = 4;
+    int64   LastWinTs   = 5; //上次获胜时间戳
+    bool    IsAdvanced  = 6; // 是否已进阶
+	repeated uint32  Picked   = 7 [packed=false];
+    repeated uint32  PickedEx = 8 [packed=false];
+    int32  RoomId       = 9; //当前所处房间id
+}
+// 匹配数据
+message DBPair {
+    map<int32, int32> match_score_map = 1;   //模式匹配分
+}
+
+//购买商品参数
+message BuyGoodsParam {
+    uint32    item_id = 1;
+    uint32    count = 2;
+    int32     shop_money_type = 3;
+    uint32    price = 4;
+    uint32    UpTime = 5;
+}
+
+// 排序方式
+enum CGSortType {
+    ByCreateTime = 0;   //创建时间
+    ByHotVal = 1;       //热度
+    ByWinVal = 2;       //胜场
+}
+
+message CardGroupUnit {
+    string               code               = 1; // 用户卡组编码
+    string               cgcode             = 2; // 卡组编码
+	uint64               ownerUid           = 3; // 属主
+	int64                createTime         = 4; // 创建时间
+	string               name               = 5; // 名称
+	uint32               price              = 6; // 总价
+	int64                hotScore           = 7; // 热度积分
+    int64                winScore           = 8; // 胜场积分
+    uint32               hotVal             = 9; // 热度指数
+	uint32               winVal             = 10; // 胜场指数
+	uint32               upvote             = 11; // 赞数量
+    gameconf.EthnicType  ethnic             = 12; // 势力
+    gameconf.LadderLevelType  ladder        = 13; // 天梯段位
+    repeated int32       cardlist           = 14[packed=false]; // 牌组
+    repeated int32       weight_cardlist    = 15[packed=false]; // 按权重排序的牌组
+    repeated int32       tags               = 16[packed=false]; // 标签
+	string               desc               = 17; // 描述
+}
+
+message StaticCardGroupInfo {
+    int32                cgID               = 1; // 卡组id
+    int64                hotScore           = 2; // 热度积分
+    int64                winScore           = 3; // 胜场积分
+    uint32               hotVal             = 4; // 热度指数
+    uint32               winVal             = 5; // 胜场指数
+    uint32               upvote             = 6; // 赞数量
+    uint32               price              = 7; // 总价
+}
+
+//充值缓存
+message UserTopUpCache {
+    int64   rmb_month  = 1;
+    int64   rmb_total  = 2;
+    string  ts         = 3;
+}
+
+//防沉迷试玩
+message FcmUserTryPlayCache {
+    int64  start_time = 1; //试玩开始时间
+    int64  ol_seconds = 2; //在线时长
+}
+
+//绑定账号的登录方式定义
+enum YokaLoginType {
+    LgType_Auto     = 0;    //
+    LgType_Guest    = 1;    // 游客
+    LgType_Personal = 2;    // yk通行证
+    LgType_Phone    = 3;    // 手机
+    LgType_WeiXin   = 4;    // 微信
+    LgType_QQ       = 5;    // QQ
+}
+
+message LogEntry {
+    uint64 user_id      = 1;
+    int64 time          = 2;
+    string account_id   = 3;
+    string tbl_name     = 4;
+    bytes log_data      = 5;
+}
+
+enum RaceRankType {
+    CurSeasonMaxWin = 0; //当前赛季最大胜场排序
+    CurSeasonAvgWin = 1; //当前赛季平均胜场排序
+    AllSeasonMaxWin = 2; //全部赛季最大胜场排序
+}
+
+message RaceRankItem {
+    uint64 user_id = 1;
+    uint32 key1    = 2;
+    uint32 key2    = 3;
+    uint32 key3    = 4;
+}
+
+//位置快照
+message LocDataSnap {
+    string province_code = 1; // 省
+    string city_code     = 2; // 市的唯一code
+    string ad_code       = 3; // 区的唯一code
+    string country       = 4;// 国家字符串
+}
+
+//========用户标签使用的统计数据========
+//统计数据历史数据
+message DBUserStatForLabelHistoryData {
+    int64 timestamp = 1;
+    map<int32, int32> history_data = 2;
+}
+
+//统计数据通用存储
+message DBUserStatForLabelCommonData {
+    map<int32, int32> data = 1; //统计数据
+    map<int32, int32> extra_data = 2;  //辅助统计的数据
+    repeated DBUserStatForLabelHistoryData history_data = 3; //历史数据
+}
+
+//用户标签使用的统计数据
+message DBUserStatForLabelData {
+    int64 timestamp = 1;
+    DBUserStatForLabelCommonData base_data = 2;        //基本数据
+    DBUserStatForLabelCommonData battle_data = 3;      //战斗数据
+    DBUserStatForLabelCommonData currency_data = 4;    //货币相关数据
+    DBUserStatForLabelCommonData active_data = 5;      //活跃数据
+}
+
+//用户标签
+message DBUserLabelHistoryData {
+    int64 timestamp = 1;
+    repeated int32 labels = 2;
+}
+
+message DBUserLabelData {
+    int64 timestamp = 1;
+    repeated int32 labels = 2;
+    repeated DBUserLabelHistoryData history_labels = 3;
+}

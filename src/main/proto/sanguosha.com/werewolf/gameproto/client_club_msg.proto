@@ -1,0 +1,461 @@
+syntax = "proto3";
+
+// 俱乐部相关.
+
+package com.mapi.werewolf.gameproto;
+
+import "sanguosha.com/werewolf/gameproto/gamedef/game_def.proto";
+
+
+// 请求我的俱乐部数据.
+message C_ReqMyClubs {
+}
+
+message S_RespMyClubs {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    message Club {
+        int32 clubid = 1;
+        string name = 2;
+        string short_name = 3;
+        int32 level = 4;
+        gamedef.ClubJobType my_job = 5;
+    }
+    repeated Club clubs = 3;
+    int32 primary_clubid = 4;
+}
+
+// 请求俱乐部详细数据.
+message C_ReqClubDetail {
+    int32 clubid = 1;
+}
+
+message S_RespClubDetail {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrDisband = 2;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    int32 clubid = 3;
+
+    message Detail {
+        string name = 2;
+        string short_name = 3;
+        int32 level = 4;
+        int64 popularity = 6;
+        int32 member_cnt = 7;
+        string announcement = 8;
+        // 解散倒计时, 不等于 0 时表示将要解散.
+        int64 disband_time_left = 9;
+        // 是否是会长主动发起解散.
+        bool disband_by_leader = 10;
+    }
+    Detail detail = 4;
+}
+
+// 请求俱乐部成员数据.
+message C_ReqClubMembers {
+    int32 clubid = 1;
+}
+
+message S_RespClubMembers {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    int32 clubid = 3;
+    uint64 leader = 4;
+    repeated uint64 deputy_leaders = 5 [packed=false];
+    repeated uint64 assistants = 6 [packed=false];
+    repeated uint64 backbones = 7 [packed=false];
+    repeated uint64 normals = 8 [packed=false];
+}
+
+// 请求在线俱乐部成员状态.
+message C_ReqClubMembersOnlineStatus {
+    int32 clubid = 3;
+}
+
+message S_RespClubMembersOnlineStatus {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    int32 clubid = 3;
+
+    // 只下发在线的人员状态, 不包含离线的部分.
+    message User {
+        uint64 userid = 1;
+        gamedef.UserStatus status = 3;
+    }
+    repeated User users = 4 [packed=false];
+}
+
+// 查询俱乐部成员所在的房间.
+message C_ReqClubMemberRooms {
+    int32 clubid = 1;
+}
+
+message S_RespClubMemberRooms {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    ErrCode err_code = 1;
+    int32 clubid = 2;
+
+    repeated int32 roomids = 3 [packed=false];
+    repeated gamedef.RoomSnapshot rooms = 4 [packed=false];
+}
+
+enum ClubTopMode {
+    Unknow = 0;
+    // 人气排序.
+    Pop = 1;
+    // 等级排序.
+    Level = 2;
+}
+
+message C_ReqTopClubs {
+    ClubTopMode mode = 1;
+    // 从第几个开始.
+    int32 start = 2;
+    // 请求数量.
+    int32 count = 3;
+}
+
+message S_RespTopClubs {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    ClubTopMode mode = 3;
+    int32 start = 4;
+
+    message Club {
+        int32 cid = 1;
+        string name = 2;
+        string short_name = 3;
+        int32 level = 4;
+        int64 popularity = 5;
+    }
+    repeated Club clubs = 5;
+}
+
+message C_ReqFindClubByName {
+    string name = 1;
+}
+
+message S_RespFindClubByName {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrNotFind = 2;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    
+    message Club {
+        int32 cid = 1;
+        string name = 2;
+        string short_name = 3;
+        int32 level = 4;
+        int64 popularity = 5;
+    }
+    Club club = 5;
+}
+
+
+// 创建俱乐部.
+message C_ReqCreateClub {
+    string name = 1;
+    string short_name = 2;
+}
+
+message S_RespCreateClub {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        // 条件不允许.
+        ErrUnableCreate = 2;
+        // 名称已被使用.
+        ErrNameUsed = 3;
+        // 名称不合法.
+        ErrNameIllegal = 4;
+        // 等级限制.
+        ErrLevelLimit = 5;
+        // 道具不够.
+        ErrGoodsNotEnough = 6;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    // 俱乐部唯一id.
+    int32 clubid = 3;
+}
+
+// 申请加入俱乐部.
+message C_ReqApplyJoinClub {
+    int32 clubid = 1;
+}
+
+message S_RespApplyJoinClub {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        // 俱乐部数量限制.
+        ErrCntLimit = 2;
+        // 俱乐部已满员.
+        ErrClubMembersCntLimit = 3;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    int32 clubid = 3;
+}
+
+// 管理员确认俱乐部加入申请.
+message C_ReqConfirmApplyJoinClub {
+    int32 clubid = 1;
+    uint64 userid = 2;
+    // 是否同意.
+    bool ok = 3;
+}
+
+message S_RespConfirmApplyJoinClub {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        // 不存在, 已被其他人处理.
+        ErrNotExist = 2;
+        // 过期.
+        ErrExpire = 3;
+        // 俱乐部已满员.
+        ErrClubMembersCntLimit = 4;
+        // 对方无法加入.
+        ErrUserUnableJoin = 5;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    int32 clubid = 3;
+    uint64 userid = 4;
+}
+
+// 申请者在线时, 通知其俱乐部加入申请结果.
+message S_NoticeApplyJoinClubResult {
+    int32 clubid = 1;
+    // 是否被接受.
+    bool ok = 2;
+}
+
+// 管理员请求俱乐部申请列表.
+message C_ReqListApplyJoinClub {
+    int32 clubid = 1;
+}
+
+message S_RespListApplyJoinClub {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    int32 clubid = 3;
+    repeated gamedef.ClubJoinApply apply_list = 4;
+}
+
+// 通知俱乐部管理员有新的加入申请.
+message S_NoticeNewApplyJoinClub {
+    int32 clubid = 1;
+    gamedef.ClubJoinApply apply = 2;
+}
+
+// 主动请求退出俱乐部.
+message C_ReqQuitClub {
+    int32 clubid = 1;
+}
+
+message S_RespQuitClub {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    int32 clubid = 3;
+}
+
+// 俱乐部事件.
+message S_NoticeClubEvent {
+    int32 clubid = 1;
+
+    enum Event {
+        Unknow = 0;
+        UserJoin = 1;
+        UserQuit = 2;
+        // 公告更新.
+        Announcement = 4;
+        // 更改成员职位.
+        JobChange = 5;
+        // 成员被踢出俱乐部.
+        UserKick = 6;
+        // 升级, 数据在 value 字段中.
+        LevelUp = 7;
+        // 名称改变了, 数据在 msg 字段中.
+        Name = 8;
+        // 简称改变了, 数据在 msg 字段中.
+        ShortName = 9;
+        // 俱乐部解散.
+        Disband = 3;
+        // 俱乐部取消解散.
+        DisbandCancel = 10;
+        // 会长解散俱乐部倒计时, 时间在 value 字段中.
+        LeaderDisbandCountDown = 11;
+        // 自动解散俱乐部倒计时, 时间在 value 字段中.
+        AutoDisbandCountDown = 12;
+    }
+    Event event = 2;
+
+    uint64 userid = 3;
+    string msg = 4;
+    gamedef.ClubJobType job = 5;
+    int64 value = 6;
+}
+
+message C_SendMessageInClub {
+    int32 clubid = 1;
+    string msg = 2;
+    int32 sticker = 3;
+}
+
+message S_NoticeClubUserMessage {
+    int32 clubid = 1;
+    uint64 userid = 2;
+    string msg = 3;
+    int32 sticker = 4;
+    string nickname = 5; // 昵称
+    // 玩家在俱乐部里的职位标识.
+    gamedef.ClubJobType user_job = 6;
+    int64 ts = 7 ; // 时间戳
+}
+
+message C_ReqDisbandClub {
+    int32 clubid = 1;
+}
+
+message S_RespDisbandClub {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        // 已在解散中.
+        ErrInDisband = 2;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    int32 clubid = 3;
+}
+
+message C_ReqCancelDisbandClub {
+    int32 clubid = 1;
+}
+
+message S_RespCancelDisbandClub {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrCanNotCancel = 2;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    int32 clubid = 3;
+}
+
+message C_ReqChangeClubMemberJob {
+    int32 clubid = 1;
+    uint64 userid = 2;
+    gamedef.ClubJobType new_job = 3;
+}
+
+message S_RespChangeClubMemberJob {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrPermission = 2;
+        ErrJobCntLimit = 3;
+        ErrUserAlreadyHavePrimaryClub = 4;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    int32 clubid = 3;
+    uint64 userid = 4;
+    gamedef.ClubJobType new_job = 5;
+}
+
+message C_ReqChangeClubAnnouncement {
+    int32 clubid = 1;
+    string announcement = 2;
+}
+
+message S_RespChangeClubAnnouncement {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    int32 clubid = 3;
+    string announcement = 4;
+}
+
+message C_ReqKickClubMember {
+    int32 clubid = 1;
+    uint64 userid = 2;
+}
+
+message S_RespKickClubMember {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrPermission = 2;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    int32 clubid = 3;
+    uint64 userid = 4;
+}
+
+message C_ReqSetClubName {
+    int32 clubid = 1;
+    string name = 2;
+    // 是否为简称.
+    bool is_short = 3;
+}
+
+message S_RespSetClubName {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        // 名称已被使用.
+        ErrNameUsed = 2;
+        // 名称不合法.
+        ErrNameIllegal = 3;
+        // 频率限制.
+        ErrRateLimit = 4;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    int32 clubid = 3;
+    bool is_short = 4;
+    // 剩余间隔时间, 单位秒.
+    int64 interval = 5;
+}

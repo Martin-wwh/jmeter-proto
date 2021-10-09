@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+package com.mapi.werewolf.gameproto;
+
+enum LoginErrCode {
+    LoginErrCode_SUCCEED = 0;
+    GT_Starting = 1;
+    GT_TimeOut = 2;              // 登录超时
+    GT_Logining = 3;             // 正在登录中
+    GT_Logined = 4;              // 已经登录
+    GT_ReLogined = 5;            // 重复登录,你被踢啦
+    GT_DBErr = 6;                // 数据库操作失败
+    GT_NOUserOrPWD = 7;          // 无此用户或密码错误
+    GT_TestMaxLoginLimit = 8;    // 已到测试人数上限
+    GT_MaxLoginLimit = 9;        // 登录人数上限
+    GT_BanLoginShortTime = 10;            // 账号被短时封停
+    GT_BanLoginForever   = 11;            // 账号被永久封停
+    GT_IpLimitOnInner = 12;      // ip不能登录，status可能是on_inner状态
+    GT_ExpirySign = 13;          // sign过期
+    GT_FcmPunishedOl22t8 = 14;   //被防沉迷22-8点禁止登录
+    GT_FcmPunishedOl2Long = 15;  //被防沉迷
+    GT_SvrStaWhiteList = 16;     //白名单状态，不能登录
+    GT_SvrStaOff = 17;           //服务关闭状态，不能登录
+}
+
+enum BuyShopGoodsErrCode {
+    BuySG_Succ                  = 0;
+    BGErrUnkown                 = 1;
+    BGErrNoUser                 = 2;
+    BGErrUserShopData           = 3;
+    BGErrNoGoodsCfg             = 4;
+    BGErrDiffUpTime             = 5;
+    BGErrDiffShopType           = 6;
+    BGErrDiffPrice              = 7;
+    BGErrLimit                  = 8;
+    BGErrNotEnoughMoney         = 9;
+    BGErrUserGoodsData          = 10;
+    BGErrAddItems               = 11;
+    BGErrSubMoney               = 12;
+    BGErrTimeout                = 13;
+    BGErrDiamondConsumeLimit    = 14;
+    BGErrNoGuildLvInfo          = 15;
+    BGErrBuyMax                 = 16;  //单次购买上限
+    BGErrRaceWinNumNotEnough    = 17;  //竞技场胜利数不足
+    BGErrRaceShopActPeriod      = 18;  //不在竞技场商店活动期
+    BGErrNotEnoughBuyRightGood  = 19;  //购买权道具不足
+    BGErrSubBuyRightGood        = 20;  //扣减购买权道具失败
+    BGErrBanUserShop            = 21;  //禁止玩家充值购买
+    BGErrBanBuyByGm             = 22;  //禁止购买
+
+    BuySG_CanBuy                = 100; //可以购买
+
+    RmbErrLoadUser              = 101; //rmb充值载入玩家数据失败
+    RmbErrAddGold               = 102; //rmb充值狼印失败
+    RmbErrShopId                = 103; //rmb查找shopId失败
+    RmbErrMakeUpCfg             = 104; //rmb补偿配置失败
+    RmbErrAddMakeUp             = 105; //rmb加补偿道具失败
+}
+
+
+enum AuthErr {
+    AuthErrCode_INVALID         = 0;
+    AuthErrCode_SUCCEED         = 1;
+    AE_AccountIsLocked          = 1001; // 账号被锁定
+    AE_AccountIsBanned          = 1002; // 账号被封禁
+    AE_AuthAccountFailed        = 1003; // 用户认证失败
+    AE_AuthErrParams            = 1004; // 错误参数
+}
+
+enum ServerOnlineErrCode {
+    ServerOnlineErrCode_SUCCEED = 0;
+    RT_AlreadyOnline = 1;
+}

@@ -1,0 +1,266 @@
+syntax = "proto3";
+
+package com.mapi.werewolf.opcode;
+
+enum Client {
+    ClientInvaildOpCode = 0;
+    
+	// gate需要解析的协议
+	ReqHeartBeat  = 1;
+	RespHeartBeat = 2;
+
+	ReqLogin  = 3;
+	RespLogin = 4;
+
+	ReqLogout    = 5; // 客户端请求退出
+	NoticeLogout = 6; // 服务器踢人
+
+	S_MessageInChannel = 11;
+
+	//
+	// Client<->Entity
+	//
+
+	ROUTE_ENTITY_BEGIN = 200;
+
+	C_ReqUserData = 201;
+	S_RespUserData = 202;
+	C_ReqInitUserData = 203;
+	S_RespInitUserData = 204;
+	C_ReqChangeAvatar = 205;
+	S_ResChangeAvatar = 206;
+	C_ReqGameRecords = 210;
+	S_RespGameRecords = 211;
+	S_NoticeUserExpLevel = 212;
+	C_ReqBindAccount = 213;
+	S_RespBindAccount = 214;
+	C_ReqUserMatchData = 215;
+	S_RespUserMatchData = 216;
+	C_ReqUserMatchGameRecords = 217;
+	S_RespUserMatchGameRecords = 218;
+	C_ReqGoodsByCategory = 219;
+	S_RespGoodsByCategory = 220;
+	C_ReqAllGoods = 221;
+	S_RespAllGoods = 222;
+	C_ReqAllTasks = 223;
+	S_RespAllTasks = 224;
+	S_NtfTaskState = 225;
+	C_ReqChangeTask = 226;
+	S_RespChangeTask = 227;
+	C_ReqMyActivity = 228;
+	S_RespMyActivity = 229;
+	C_ReqEditSignature = 230;
+	S_RespEditSignature = 231;
+
+	C_ReqUpLoadFigure = 232;
+	S_RespUpLoadFigure = 233;
+
+	ROUTE_ENTITY_END = 999;	
+
+
+	//
+	// Client<->Lobby
+	//
+
+	ROUTER_LOBBY_BEGIN = 1000;
+
+	C_ReqQuickJoinRoom = 1001;
+	C_ReqJoinRoom = 1027;
+	S_RespJoinRoom = 1002;
+	C_ReqQuitRoom = 1003;
+	S_RespQuitRoom = 1004;
+	C_ReqCreateRoom = 1028;
+	S_RespCreateRoom = 1029;
+	C_ReqApplyAddFriend = 1008;
+	S_ResApplyAddFriend = 1009;
+	C_ReqConfirmAddFriend = 1010;
+	S_ResConfirmAddFriend = 1011;
+	C_ReqDelFriend	= 1012;
+	S_ResDelFriend	= 1013;
+	C_ReqFriendChat	= 1014;
+	S_ResFriendChat	= 1015;
+	C_ReqFollowFriend = 1016;
+	S_ResFollowFriend = 1017;
+	C_ReqFriendData = 1018;
+	S_ResFriendData = 1019;
+	C_ReqFriendList = 1020;
+	S_ResFriendList = 1021;
+	S_NoticeApplyAddFriend = 1022;
+	S_NoticeConfirmAddFriend = 1023;
+	S_NoticeDelFriend = 1024;
+	C_ReqFriendStatus = 1025;
+	S_ResFriendStatus = 1026;
+	C_InviteJoinRoom = 1030;
+	S_InviteJoinRoomResult = 1031;
+	S_NoticeInviteToJoinRoom = 1032;
+	S_NoticeGameFreeze = 1033;	
+	C_ReqJoinMatch = 1035;
+	S_RespJoinMatch = 1036;
+	C_ReqCancelMatch = 1037;
+	S_RespCancelMatch = 1038;
+	C_ReqUserSignUpMatch = 1039;
+	S_RespUserSignUpMatch = 1040;
+	C_ReqJoinChatChannel = 1041;
+	S_RespJoinChatChannel = 1042;
+	C_ReqChatChannelList = 1043;
+	S_RespChatChannelList = 1044;
+	C_SendMessageInChannel = 1045;
+	C_ReqQuitChatChannel = 1046;
+	S_RespQuitChatChannel = 1047;
+	C_ReqCreateMatchRoom = 1048;
+	S_RespCreateMatchRoom = 1049;
+	C_ReqJoinMatchRoom = 1050;
+	S_RespJoinMatchRoom = 1051;
+
+	ROUTER_LOBBY_END = 1999;
+
+	//
+	// Client<->Game
+	//
+
+	ROUTER_GAME_BEGIN = 2000;
+
+	C_ReportClientReadyForGame = 2001;
+	C_ReqReady = 2002;
+	S_RespReady = 2003;
+	C_ReqCancelReady = 2004;
+	S_RespCancelReady = 2005;
+	C_ReqRoomStartGame = 2006;
+	S_RespRoomStartGame = 2007;
+	S_IsRoomAbleStartGame = 2020;
+	C_ReqKickUser = 2008;
+	S_RespKickUser = 2009;
+	S_NoticeBeKicked = 2010;
+	S_SyncRoomState = 2011;
+	S_UserJoin = 2012;
+	S_UserQuit = 2013;
+	S_UserReady = 2014;
+	S_UserConnect = 2015;
+	C_ReportUserLeaveState = 2034;
+	S_NewRoomOwner = 2016;
+	C_SendMessageInRoom = 2017;
+	S_UserMessageInRoom = 2018;
+	S_GameSyncOK = 2019;
+	C_RoomSettingEnableSpeakInterrupt = 2200;
+	S_RoomSettingEnableSpeakInterrupt = 2201;
+	C_RoomSettingUserLevelLimit = 2202;
+	S_RoomSettingUserLevelLimit = 2203;
+	C_RoomSettingPWD = 2204;
+	S_RoomSettingPWD = 2205;
+	C_RoomSettingEnableSpectate = 2206;
+	S_RoomSettingEnableSpectate = 2207;
+	C_ReqChangeSeat = 2208;
+	S_RespChangeSeat = 2209;
+	S_UserChangeSeat = 2210;
+
+	S_GameStart = 2021;
+	S_GameResult = 2022;
+	S_EnterStage = 2023;
+	S_Timer = 2076;
+	C_ChooseSeat = 2025;
+	S_ChooseSeat = 2026;
+	C_ConfirmUseAbility = 2027;
+	S_TargetResult = 2028;
+	S_RoleActionEnd = 2029;
+	S_RoleUseAbility = 2030;
+	S_Werewolves = 2031;
+	S_WerewolvesActionResult = 2032;
+	S_SeerActionResult = 2033;
+	S_StartSpeakFrom = 2077;
+	S_TurnSpeak = 2036;
+	C_EndSpeak = 2037;
+	S_EndSpeak = 2040;
+	S_AllSpeakEnd = 2078;
+	S_VoteResult = 2038;
+	S_Death = 2039;
+	S_SyncGameState = 2060;
+	S_SyncSeerState = 2061;
+	S_SyncWitchState = 2062;
+	S_SyncDefenderState = 2063;
+	S_SyncStage = 2064;
+	S_SyncGameStageRecords = 2065;
+	S_RunForSheriff = 2068;
+	C_QuitSheriff = 2069;
+	S_QuitSheriff = 2070;
+	S_SheriffResult = 2071;
+	S_SheriffActionResult = 2072;
+	S_SheriffChooseSpeakFrom = 2073;
+	C_WerewolfExpose = 2074;
+	C_ConfirmResult = 2075;
+	C_EnableCurSpeakInterrupt = 2079;
+	S_EnableCurSpeakInterrupt = 2080;
+	S_SelfRole = 2081;
+	S_TargetRole = 2082;
+	S_SyncONTroubleMakerState = 2083;
+
+	ROUTER_GAME_END = 2999;
+
+
+	ROUTER_KITSVR_BEGIN = 3000;
+
+	C_ReqUserNetEaseToken = 3001;
+	S_RespUserNetEaseToken = 3002;
+	C_ReqRankData = 3003;
+	S_RespRankData = 3004;
+	C_ReqNewMail = 3005;
+	S_RespNewMail = 3006;
+	C_ReportGetNewMail = 3007;
+	C_ReqFindUserByName = 3008;
+	S_ResFindUserByName = 3009;
+	C_ReqMatchRankData = 3010;
+	S_RespMatchRankData = 3011;
+	C_ReqGetAttachment = 3012;
+	S_RespGetAttachment = 3013;
+	C_ReqUserSnapshot = 3014;
+	S_RespUserSnapshot = 3015;
+	C_ReqBatchUserSnapshot = 3016;
+	S_RespBatchUserSnapshot = 3017;
+	C_ReqUserDetail = 3018;
+	S_RespUserDetail = 3019;
+	C_ReqMatchHonor = 3020;
+	S_RespMatchHonor = 3021;
+
+	ROUTER_KITSVR_END = 3999;
+
+	ROUTER_CLUB_BEGIN = 4000;
+
+	C_ReqMyClubs = 4001;
+	S_RespMyClubs = 4002;
+	C_ReqClubDetail = 4003;
+	S_RespClubDetail = 4004;
+	C_ReqClubMembers = 4005;
+	S_RespClubMembers = 4006;
+	C_ReqClubMembersOnlineStatus = 4007;
+	S_RespClubMembersOnlineStatus = 4008;
+	C_ReqTopClubs = 4009;
+	S_RespTopClubs = 4010;
+	C_ReqCreateClub = 4011;
+	S_RespCreateClub = 4012;
+	C_ReqApplyJoinClub = 4013;
+	S_RespApplyJoinClub = 4014;
+	C_ReqConfirmApplyJoinClub = 4015;
+	S_RespConfirmApplyJoinClub = 4016;
+	S_NoticeApplyJoinClubResult = 4017;
+	C_ReqListApplyJoinClub = 4018;
+	S_RespListApplyJoinClub = 4019;
+	S_NoticeNewApplyJoinClub = 4020;
+	C_ReqQuitClub = 4021;
+	S_RespQuitClub = 4022;
+	S_NoticeClubEvent = 4023;
+	C_SendMessageInClub = 4024;
+	S_NoticeClubUserMessage = 4025;
+	C_ReqDisbandClub = 4026;
+	S_RespDisbandClub = 4027;
+	C_ReqChangeClubMemberJob = 4028;
+	S_RespChangeClubMemberJob = 4029;
+	C_ReqChangeClubAnnouncement = 4030;
+	S_RespChangeClubAnnouncement = 4031;
+	C_ReqClubMemberRooms = 4032;
+	S_RespClubMemberRooms = 4033;
+	C_ReqFindClubByName = 4034;
+	S_RespFindClubByName = 4035;
+	C_ReqKickClubMember = 4036;
+	S_RespKickClubMember = 4037;
+
+	ROUTER_CLUB_END = 4999;
+}

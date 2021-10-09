@@ -1,0 +1,1652 @@
+syntax = "proto3";
+
+package com.mapi.werewolf.cgv2proto;
+
+import "sanguosha.com/werewolf/gameproto/gamedefv2/game_def.proto";
+import "sanguosha.com/werewolf/gameproto/gamedef/game_def.proto";
+import "sanguosha.com/werewolf/gameproto/gameconf/game_config.proto";
+
+/*====================================================================
+卡组
+=====================================================================*/
+// 通知卡组被动下阵
+message S_NtfGroupOffBattle {
+    int32 OffedBattleID = 1;
+}
+
+message C_ReqAllCardGroups {
+}
+message S_RespAllCardGroups {
+    enum ErrCode {
+        Sucess = 0;
+        ErrUnKnown = 1;
+        ErrNotFindUser = 2;
+        ErrNoCardgroup = 3;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    repeated gamedefv2.DBCard AllCards = 3 [packed = false];
+    repeated gamedefv2.DBSkin AllSkins = 4 [packed = false];
+    repeated gamedefv2.QualityCore QualityCores = 5 [packed = false];
+    repeated gamedefv2.CardGroup CardGroups = 6 [packed = false];
+    int32 BattleGroupID     = 7;
+    int32 CardFragment      = 8;
+    int32 StaticSkinFrag    = 9;  //静态皮肤碎片
+    int32 DynamicSkinFrag   = 10; //动态皮肤碎片
+    int32 GroupLimtWolfCnt  = 11; // 卡组狼牌数量限制
+    int32 GroupLimtTotalCnt = 12; // 卡组总牌数限制
+}
+
+// 添加卡组
+message C_ReqAddCardGroup {
+    string Name = 1; //卡组名字
+    gameconf.EthnicType EthnicType = 2; //种族势力
+    repeated int32 RoleIDs = 3 [packed = false]; //卡牌id
+    repeated int32 MergeRoleIDs = 4 [packed=false]; //合体牌
+}
+message S_RespAddCardGroup {
+    enum ErrCode {
+        Sucess = 0;
+        ErrUnKnown = 1;
+        ErrNotFindUser = 2;
+        ErrNoCard = 3; //卡牌不存在
+        ErrEthnic = 4; //卡牌种族错误
+        ErrGroupNumUpperLimit = 5; //卡组个数已到上限
+        ErrLockEthnic = 6; //种族未解锁
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    int32 CardGroupID = 3; //卡组id
+    string Name = 4; //卡组名字
+    gameconf.EthnicType EthnicType = 5; //种族势力
+    repeated int32 RoleIDs = 6 [packed = false]; //卡牌id
+    repeated int32 MergeRoleIDs = 7 [packed=false]; //合体牌
+}
+// 保存卡组
+message C_ReqSaveCardGroup {
+    int32 CardGroupID = 1; //卡组id
+    repeated int32 RoleIDs = 2 [packed = false]; //卡牌id
+    repeated int32 MergeRoleIDs = 3 [packed=false]; //合体牌
+}
+
+message S_RespSaveCardGroup {
+    enum ErrCode {
+        Sucess = 0;
+        ErrUnKnown = 1;
+        ErrNotFindUser = 2;
+        ErrNoCard = 3; // 卡牌不存在
+        ErrNoGroup = 4; // 卡组不存在
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    int32 BattleGroupID = 3; //当前上阵的卡组id
+    repeated int32 RoleIDs = 4 [packed = false]; //卡牌id
+    int32 CardGroupID = 5; //
+    repeated int32 MergeRoleIDs = 6 [packed=false]; //合体牌
+}
+
+// 删除卡组
+message C_ReqDeleteCardGroup {
+    int32 CardGroupID = 1; //卡组id
+}
+message S_RespDeleteCardGroup {
+    enum ErrCode {
+        Sucess = 0;
+        ErrUnKnown = 1;
+        ErrNotFindUser = 2;
+        ErrGroupNumLowerLimit = 3; // 卡组个数已经达到下线，禁止删除
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    int32 CardGroupID = 3; //删除的卡组id
+    int32 BattleGroupID = 4; //当前上阵的卡组id
+}
+
+message C_ReqAddCardToCardGroup {
+    int32 RoleID = 1;
+    int32 CardGroupID = 2;
+    int32 index = 3;
+}
+
+message S_RespAddCardToCardGroup {
+    enum ErrCode {
+        Sucess = 0;
+        ErrUnKnown = 1;
+        ErrNotFindUser = 2;
+        ErrNoGroup = 3; // 卡组不存在
+        ErrNoCard = 4; // 卡牌不存在
+        ErrNoExtraCard = 5; // 没有多余的卡牌可上阵
+        ErrHaveSameExCard = 6; // 只能上阵该卡的强化卡
+        ErrInGroup = 7; // 已经在卡组中
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    int32 RoleID = 3;
+    int32 CardGroupID = 4;
+    bool CanUse = 5;
+    int32 index = 6;
+}
+
+message C_ReqMoveCardInCardGroup {
+    int32 groupID = 1;
+    int32 toIdx = 2;
+    int32 fromIdx = 3;
+}
+
+message S_RespMoveCardInCardGroup {
+    enum ErrCode {
+        Sucess = 0;
+        ErrUnKnown = 1;
+        ErrNotFindUser = 2;
+        ErrNoGroup = 3;
+        ErrOutOfIdx = 4;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    int32 groupID = 3;
+    int32 toIdx = 4;
+    int32 fromIdx = 5;
+}
+
+message C_ReqDelCardFromCardGroup {
+    int32 CardGroupID = 1;
+    int32 index = 2;
+}
+message S_RespDelCardFromCardGroup {
+    enum ErrCode {
+        Sucess = 0;
+        ErrUnKnown = 1;
+        ErrNotFindUser = 2;
+        ErrNoGroup = 3;
+        ErrNoCard = 4;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    int32 CardGroupID = 3;
+    bool CanUse = 4;
+    int32 index = 5;
+}
+
+// 修改卡组名称
+message C_ReqChangeGroupName {
+    int32 GroupID = 1;
+    string Name = 2;
+}
+message S_RespChangeGroupName {
+    enum ErrCode {
+        Sucess = 0;
+        ErrUnKnown = 1;
+        ErrNotFindUser = 2;
+        ErrNoGroup = 3; // 卡组不存在
+        ErrNameIllegal = 4; // 卡组名称非法
+        ErrBanRename = 5; //禁止玩家修改
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    int32 GroupID = 4;
+    string Name = 3;
+}
+
+// 设定卡组上阵
+message C_ReqGroupOnBattle {
+    int32 GroupID = 1;
+}
+message S_RespGroupOnBattle {
+    enum ErrCode {
+        Sucess = 0;
+        ErrUnKnown = 1;
+        ErrNotFindUser = 2;
+        ErrCanNotUse = 3;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    int32 GroupID = 3;
+}
+
+// 设定卡组下阵
+message C_ReqGroupOffBattle {
+    int32 GroupID = 1;
+}
+message S_RespGroupOffBattle {
+    enum ErrCode {
+        Sucess = 0;
+        ErrUnKnown = 1;
+        ErrNotFindUser = 2;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    int32 GroupID = 3;
+}
+
+// 通知客户端解锁势力信息
+message S_NtfUnlockEthnic {
+    gamedef.MsgType type = 1;
+    repeated gameconf.EthnicType unlocked_ethnics = 2[packed=false];
+}
+
+// 请求获取练习模式已领奖势力
+message C_ReqPracticeRewardedEthnic {
+}
+message S_RespPracticeRewardedEthnic {
+    enum ErrCode {
+        Sucess = 0;
+        ErrNotFindUser = 1;
+    }
+    ErrCode err_code = 1;
+    repeated gameconf.EthnicType ethnic_list = 2 [packed = false];
+}
+
+// 一键强化所有卡牌
+message S_NtfOneKeyStrenAllCards {
+
+}
+
+// 合成卡牌
+message C_ReqComposeCard {
+    int32 RoleID = 1;
+}
+message S_RespComposeCard {
+    enum ErrCode {
+        Sucess = 0;
+        ErrUnKnown = 1;
+        ErrNotFindUser = 2;
+        ErrUnkownCard = 3; // 未知卡牌
+        ErrCanNotCompose = 4; // 不可合成
+        ErrNoEnoughFragment = 5; // 卡牌碎片数量不足
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    gamedefv2.DBCard NewCard = 3;
+    int32 CurFragment = 4;
+}
+// 分解卡牌
+message C_ReqDecomposeCard {
+    int32 role_id   = 1;  //卡牌id
+    int32 cnt       = 2;  //卡牌数量
+    int32 frag_cnt  = 3; //分解碎片数量
+}
+message S_RespDecomposeCard {
+    enum ErrCode {
+        Sucess = 0;
+        ErrUnKnown          = 1;
+        ErrNotFindUser      = 2;
+        ErrUnkownCard       = 3; // 未知卡牌,id错误，未找到配置
+        ErrCanNotDecompose  = 4; // 卡牌数量够,但不可分解(基础或限定牌逻辑)
+        ErrNoEnoughCard     = 5; // 卡牌数量不足(请求分解数量超过拥有数量)
+        ErrNotMatch         = 6; // 后端验证未通过
+    }
+    ErrCode err_code  = 1;
+    string  err_msg   = 2;
+    int32   role_id   = 3;
+    int32   cnt       = 4;
+    int32   frag      = 5;
+}
+// 一键分解
+message C_ReqDecomposeAllCards {
+    int32 frag_cnt = 1; //分解卡牌数量
+}
+message S_RespDecomposeAllCards {
+    enum ErrCode {
+        Success                = 0;
+        ErrNotFindUser         = 1;
+        ErrNoCardCanDecompose  = 2;     //无可分解卡牌
+        ErrNotMatch            = 3;     //后端验证未通过
+    }
+    ErrCode err_code  = 1;
+    string  err_msg   = 2;
+    int32   cnt       = 3;
+    int32   add_frag  = 4;
+}
+
+// 粘贴卡组
+message C_ReqPasteCardGroup {
+    int32 ToGroupid = 1;
+    repeated int32 Roleids = 2 [packed = false];
+}
+
+message S_RespPasteCardGroup {
+    enum ErrCode {
+        Sucess = 0;
+        ErrUnKnown = 1;
+        ErrNotFindUser = 2;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    gamedefv2.CardGroup CardGroup = 3;
+}
+
+// 一键自动组卡
+message C_ReqAutoMakeCardGroup {
+    int32 CardGroupID = 1;
+}
+message S_RespAutoMakeCardGroup {
+    enum ErrCode {
+        Sucess = 0;
+        ErrUnKnown = 1;
+        ErrNotFindUser = 2;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    gamedefv2.CardGroup CardGroup = 3;
+}
+
+// 添加卡牌
+message S_NtfCardsAddition {
+    repeated gamedefv2.DBCard addedCards = 1 [packed = false]; //添加的卡牌
+    repeated gamedefv2.DecomCard decomCards = 2 [packed = false]; //分解掉的卡牌
+    string   from = 3; //来源
+}
+
+// 穿戴皮肤
+message C_ReqWearSkin {
+    int32 SkinID = 1;
+    int32 RoleID = 2;
+}
+
+message S_RespWearSkin {
+    enum ErrCode {
+        Sucess = 0;
+        ErrNoUser = 1;
+        ErrNotOwnCard = 2; // 未拥有这张卡
+        ErrNoCardCfg = 3; //没有卡牌配置
+        ErrNotOwnSkin = 4; // 未拥有这款皮肤
+        ErrNotMatchSkinForCard = 5; // 皮肤和卡牌不匹配
+    }
+    ErrCode result = 1;
+    int32 SkinID = 2;
+    int32 RoleID = 3;
+}
+
+// 脱下皮肤
+message C_ReqTakeoffSkin {
+    int32 RoleID = 1;
+}
+
+message C_RespTakeoffSkin {
+    enum ErrCode {
+        Sucess = 0;
+        ErrUnKnown = 1;
+        ErrNotOwn = 2; // 根本未拥有这张卡牌
+        ErrNotOn = 3; // 卡牌并没有穿戴皮肤
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// 卡牌模式第二种玩法协议
+// 请求竞技场阶段
+message C_ReqRaceStage {
+
+}
+message S_RespRaceStage {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrNotFindUser = 2;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    gamedef.RaceStage Stage = 3;
+    bool Rewarded = 4;
+    int32 SeasonId = 5;      //赛季id
+}
+
+// 领取竞技场奖励
+message C_ReqRaceReward {
+
+}
+message S_RespRaceReward {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrNotFindUser = 2;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+
+    repeated gamedef.Goods goodsList = 3 [packed = false]; //获得的道具
+    repeated gamedefv2.DBCard addedCards = 4 [packed = false]; //添加的卡牌
+    repeated gamedefv2.DecomCard decomCards = 5 [packed = false]; //分解掉的卡牌
+}
+
+// 加入竞技场
+message C_ReqJoinRace {
+
+}
+
+message S_RespJoinRace {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrNotFindUser = 2;
+        ErrNoTicket = 3;
+        ErrNotInSeason = 4; // 不在竞技场赛季
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    gamedef.Goods spendTicket = 3;
+    gameconf.EthnicType ethnic = 4; //种族
+}
+
+// 退出本轮竞技
+message C_ReqQuitRace {
+
+}
+
+message S_RespQuitRace {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrNotFindUser = 2;
+        ErrNotReward = 3;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+}
+// 竞技币商店
+message C_ReqRaceShop {
+
+}
+
+message S_RespRaceShop {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrNotFindUser = 2;
+    }
+    ErrCode err_code = 1;
+    int32 shop_activity_id = 2;   // 当前的商店活动id
+    int32 duaration_max_wins = 3; // 期间最大胜场
+}
+
+// 上报选择的种族
+message C_ReqRaceSelectEthnic {
+    gameconf.EthnicType ethnic_type = 1;
+}
+message S_RespRaceSelectEthnic {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrNotFindUser = 2;
+        ErrStage = 3;
+        ErrNotInEthnicList = 4;     //选择的种族不在备选中
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    gameconf.EthnicType ethnic_type = 3;
+}
+
+// 上报选择的卡牌
+message C_ReqRaceSelectCard {
+    int32 ID = 1; //选牌轮次的id
+    int32 idx = 2; //卡牌插入的位置
+    int32 roleid = 3; //卡牌
+}
+
+message S_RespRaceSelectCard {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrNotFindUser = 2;
+        ErrSelectRound = 3;
+        ErrNotInRoleCP = 4;
+        ErrStage = 5;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    int32 ID = 3; //选牌轮子id
+    gamedef.Card selCard = 4; //选择的牌
+    gamedef.Card disCard = 5; //放弃的牌
+    int32 idx = 6;
+}
+
+// 竞技场卡组移动卡牌
+message C_ReqRaceMoveCard {
+    int32 toIdx = 1;
+    int32 fromIdx = 2;
+}
+message S_RespRaceMoveCard {
+    enum ErrCode {
+        Sucess = 0;
+        ErrUnKnown = 1;
+        ErrNotFindUser = 2;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    int32 toIdx = 3;
+    int32 fromIdx = 4;
+}
+
+// 竞技时，上报选择的强化卡牌
+message C_ReqReportStrengthCard {
+    int32 roleid     = 1;   //原卡牌
+    int32 new_roleid = 2;   //新卡牌
+    bool  canceled   = 3;   //不换
+}
+
+message S_RespReportStrengthCard {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrNotFindUser = 2;
+        ErrStage = 3;
+        ErrNotInStrengthRoles = 4;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    gamedef.Card old_card = 3;
+    gamedef.Card new_card = 4;
+    bool    canceled      = 5; //取消
+}
+
+message S_NtfUserRaceData {
+    gamedef.RaceStage Stage         = 1;
+    repeated gamedef.Card Cards     = 2 [packed = false];
+    repeated gamedef.CardCP CardCPs = 3 [packed = false];
+    int32 SelectedCPid              = 4;
+    repeated gamedef.Card CanStrenCards = 5 [packed = false];
+    int32 MatchScore                = 6;
+    int32 WinCnt                    = 7;
+    int32 LoseCnt                   = 8;
+    bool Rewarded                   = 9;
+    gameconf.EthnicType Ethnic      = 10; //种族
+    repeated gameconf.EthnicType EthnicList = 11 [packed = false]; //备选种族
+    gameconf.GameResultType last_game_result = 12;   //最后一局游戏结果(客户端提示使用)
+    int32 SeasonId                  = 13;      //赛季id
+    int32 SeasonMaxWinsInRound      = 14;      //赛季期间单轮内最大胜利数
+}
+
+message S_NtfRaceSeasonChange {
+
+}
+
+// 请求竞技胜场数据
+message C_ReqRaceWinRank {
+    int32 WinNum = 1;
+    gameconf.EthnicType Ethnic = 2;
+}
+
+message S_RespRaceWinRank {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrNotFindUser = 2;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    int32 WinNum = 3; //胜场数
+    gameconf.EthnicType Ethnic = 4; //种族
+    int32 WinCnt = 5; //次数
+    int32 Rank = 6; //排名
+}
+
+// 请求竞技连胜数据
+message C_ReqRaceStreakWinRank {
+    int32 WinNum = 1;
+    gameconf.EthnicType Ethnic = 2;
+}
+message S_RespRaceStreakWinRank {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrNotFindUser = 2;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    int32 WinNum = 3; //胜场数
+    gameconf.EthnicType Ethnic = 4;
+    int32 WinCnt = 5; //次数
+    int32 Rank = 6; //排名
+}
+
+//请求竞技场雷达数据
+message C_ReqRaceRadarData {
+    gamedef.RaceSeasonType Season = 1;
+    gameconf.EthnicType Ethnic = 2;
+}
+message S_RespRaceRadarData {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrNotFindUser = 2;
+        ErrNoSeasonData = 3;
+    }
+    ErrCode err_code = 1;
+    gamedef.RaceSeasonType Season = 2;
+    gameconf.EthnicType Ethnic = 3;
+    gamedef.DBRadarData Radar = 4;
+    int32 Roundcnt = 5;
+    int32 GameCnt = 6;
+    int32 WinCnt = 7;
+    repeated int32 WinNumList          = 8 [packed=false];
+    repeated int32 WinNumValList       = 9 [packed=false];
+    repeated int32 WinStreakNumList    = 10 [packed=false];
+    repeated int32 WinStreakNumValList = 11 [packed=false];
+}
+
+//请求竞技对战记录
+message C_ReqRaceGameRecords {
+    int32 offset = 1;
+    int32 cnt = 2;
+}
+message S_RespRaceGameRecords {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrNotFindUser = 2;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    int32 offset = 3;
+    int32 cnt = 4;
+    repeated gamedef.RaceRoundRecord Records =5[packed=false];
+}
+
+// 请求匹配
+message C_ReqPair {
+    gamedef.MatchType mtyp = 1;
+}
+// 返回匹配
+message S_RespPair {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrAlreadyInMatch = 2; //已在匹配中
+        ErrAlreadyInRoom = 3; //已经房间里
+        ErrMatchUserLevelLimit = 4; // 等级不足
+        ErrMatchExpire = 5; // 天梯未开放
+        ErrInvalidSeason = 6; // 不合法的赛季
+        ErrInvalidCardGroup = 7; // 卡组不满足配置
+        ErrNotInTime = 8; //不在比赛时间内
+        ErrForbidMatch = 9; //举报禁止游戏
+        ErrPKRoomNotFitCond= 10; //比赛房间未满足匹配条件
+        ErrBanUserPair = 11; //禁止玩家匹配
+        ErrBanLadderPair = 12; //天梯匹配功能已关闭
+        ErrDdzNotHappyC  = 13; //ddz hc不足
+        ErrNoCardGroup = 14; //无上阵套牌
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    gamedef.MatchType mtyp = 3;
+    int32 avgPairTimeSec = 4;   // 平均匹配时长
+    int64 banUserSec = 5;       // 禁止匹配时长
+}
+
+// 请求取消匹配
+message C_ReqCancelPair {
+    gamedef.MatchType mtyp = 1;
+}
+
+message S_RespCancelPair {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrNotFindUser = 2;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+}
+
+// 匹配结果
+message S_NtfPairResult {
+    enum ErrCode {
+        Succ = 0;
+        Failed = 1;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+}
+
+// 肮词处理端
+message S_NtfFilterTerminal {
+    gamedef.FilterTerminal AMessageTerminal = 1;
+    gamedef.FilterTerminal BMessageTerminal = 2;
+}
+
+// 开包保底机制的状态
+message S_NtfCardBagProtectState {
+    gamedef.OnOff state = 1;
+}
+
+// 游戏开始
+message S_NtfCGStartGame {
+    message GamerInfo {
+        int32                           seat                = 1;
+        gamedef.PlayerRoleType          player_role_type    = 2;
+        repeated gamedefv2.CGCardData   cards               = 3 [packed = false];
+        int32                           card_back           = 4;
+    }
+    repeated GamerInfo  gamers      = 1 [packed = false];
+    int32               msg_seat    = 2; //发给谁的协议
+    string              game_uid    = 3; //游戏id
+}
+// 洗牌
+message S_NtfCGShuffle {
+    message gamerCards {
+        int32                         seat  = 1;
+        repeated gamedefv2.CGCardData cards = 2 [packed = false];
+    }
+    repeated gamerCards data        = 1 [packed = false];
+    int32               msg_to_seat = 2; //发给谁的协议
+}
+// 通知游戏阶段
+message S_NtfCGameStage {
+    gamedefv2.CGameStage stage = 1;
+    int32 acSeat = 2;
+    int32 timeBar = 3;
+    int32 daynight = 4; //天数
+    int32 max_round = 5; //最大回合数
+    int32 cur_round = 6; //当前回合数
+    int64 time_end = 7;  //timebar截至时间
+}
+
+// 通知达到游戏最大天数
+message S_NtfMaxDayTip {
+    enum TipType {
+        PreMaxDay = 0; //最大天数的前一天
+        MaxDay = 1; //到达最大天数限制
+    }
+    TipType tip_type = 1;
+}
+
+// 放弃操作
+message C_ReqCGCancelStage {
+    gamedefv2.CGameStage stage = 1;
+}
+// 放弃操作结果
+message S_RespCGCancelStage {
+    enum ErrCode {
+        Sucess = 0;
+        ErrStage = 1;
+    }
+    gamedefv2.CGameStage stage = 1;
+    ErrCode err_code = 2;
+    int32 seat = 3;
+}
+// 换牌
+message C_ReqCGChangeCards {
+    repeated uint32 uid_cards = 1 [packed = false];
+}
+// 换牌结果
+message C_RespCGChangeCards {
+    enum ErrCode {
+        Sucess = 0;
+        ErrParam = 1;
+        MoveErr = 2;
+        MoveErr2 = 3;
+    }
+    repeated uint32 uid_cards = 1 [packed = false];
+    ErrCode err_code = 2;
+    string err_msg = 3;
+    repeated uint32 uid_new_cards = 4 [packed = false];
+}
+
+// 卡牌状态通知
+message S_NtfCGCardStates {
+    enum StateEvent {
+        SEInvalid = 0;
+        UseActiveSpell = 1;
+    }
+    int32 seatid = 1;
+    gamedefv2.CGCardData card = 2;
+    StateEvent event = 3;
+    int32 to_seat = 5;
+}
+
+// 批量卡牌状态变换通知
+message S_NtfCGMultiCardStates {
+    message CardStates {
+        int32 seatid = 1;
+        gamedefv2.CGCardData card = 2;
+    }
+    repeated CardStates states = 1 [packed = false];
+}
+
+// 对手狼的位置
+message S_NtfRivalWolfInfo {
+    repeated gamedefv2.CGCardKey wolfs = 1 [packed = false];
+}
+
+// 卡牌移动
+message S_NtfCGCardMove {
+    int32 from_seat = 1;
+    int32 to_seat = 2;
+    gamedefv2.CGCardData from = 3;
+    gamedefv2.CGCardData to = 4;
+    int32 msg_seat = 5; //发给谁的协议
+}
+
+// 多张卡牌移动
+message S_NtfCGMultiCardMove {
+    int32 from_seat = 1;
+    int32 to_seat = 2;
+    repeated gamedefv2.CGCardData from = 3 [packed = false];
+    repeated gamedefv2.CGCardData to = 4 [packed = false];
+    int32 msg_seat = 5; //发给谁的协议
+}
+
+// 两张卡牌交换位置
+message S_NtfCardExchangePos {
+    int32 seat1 = 1;
+    gamedefv2.CGCardData card1_from = 2;
+    gamedefv2.CGCardData card1_to = 3;
+    int32 seat2 = 4;
+    gamedefv2.CGCardData card2_from = 5;
+    gamedefv2.CGCardData card2_to = 6;
+}
+
+// 卡牌标记通知
+message S_NtfCGCardMark {
+    enum SyncMarkOpTyp {
+        op_type_invalid = 0;
+        op_type_add = 1; // 有新添加
+        op_type_remove = 2; // 有删除
+        op_type_sync = 3; // 同步
+    }
+    int32 seat = 1; // 座位
+    gamedefv2.CGCardKey card = 2; //卡牌
+    repeated gamedefv2.CGMarkAttr marks = 3 [packed = false]; // 标记
+    int32 to_seat = 4;
+    int32 op_type = 5; // 操作类型
+}
+
+// 卡牌复制通知
+message S_NtfCGCardCopy {
+    int32 seat = 1; // 座位
+    gamedefv2.CGCardKey card = 2; // 卡牌
+    int32 copyRoleID = 3; // 复制的卡牌id
+    int32 to_seat = 4; // 客户端播放录像使用
+    int32 copyRoleSkinId = 5; // 复制的卡牌使用的皮肤id
+    int32 copyRoleTyp = 6; // 复制身份
+}
+
+// 卡牌添加通知
+message S_NtfCGCardAdds {
+    repeated gamedefv2.CGCardData cards = 1 [packed = false];
+    int32 userSeat = 2; //加给谁
+    repeated uint32 from_card_uid = 3 [packed = false];
+    int32 to_seat = 4;
+    gamedefv2.CGGamerCardKey scard = 5;             //谁召唤的
+    string why = 6;                                 //加牌来源
+}
+
+// 新月卡牌洗回库通知
+message S_NtfCGShuffleBackCards {
+    bool isAdd = 1;
+    repeated gamedefv2.CGCardData shufflebackCards = 2 [packed = false];
+    repeated gamedefv2.CGCardData zoneCards = 3 [packed = false];
+    int32 userSeat = 4;
+    int32 toSeat = 5;
+}
+
+// 通知双方使用了卡牌(新月卡和效果卡)
+message S_NtfUseCard {
+    gamedefv2.CGCardData Card = 1;
+    int32 userSeat  = 2;            //谁的卡牌
+}
+
+//新月卡牌抽卡通知
+message S_NtfCGDrawNewMoonCard {
+    repeated gamedefv2.CGCardData cards = 1 [packed = false];
+    int32 userSeat = 2;
+}
+
+// data:技能目标
+message CGSpellTarget {
+    int32 seat = 1;
+    gamedefv2.CGCardKey card = 2;
+}
+
+// 发动技能
+message C_ReqCGUseSpell {
+    gamedefv2.CGCardKey card = 1;
+    int32 spellid = 2;
+    repeated CGSpellTarget targets = 3 [packed=false];
+}
+
+// 发动技能结果
+message S_RespCGUseSpell {
+    enum ErrCode {
+        Sucess = 0;
+        ErrParam = 1;
+        ErrMoveCard = 2;
+        ErrNewSpell = 3;
+        ErrNotImp = 4;
+        SpellOver = 5;
+    }
+    int32 seat = 1;
+    gamedefv2.CGCardKey card = 2;
+    int32 spellid = 3;
+    repeated CGSpellTarget targets = 4 [packed=false];
+    ErrCode err_code = 5;
+    string err_msg = 6;
+    bool   is_auto = 7; //是否被动技能
+}
+//技能目标通知
+message S_NtfUseSpellTargets {
+    int32 seat = 1;
+    gamedefv2.CGCardKey card = 2;
+    int32 spellid = 3;
+    repeated CGSpellTarget targets = 4 [packed=false];
+}
+
+// 卡牌游戏结果
+message S_CGGameResult {
+    gameconf.GameResultType result = 1;
+    int64 delta_coin = 2;
+    int64 delta_exp = 3;
+    int64 delta_star = 4;
+}
+
+// 先后手通知
+message S_NtfCGRoundFirst {
+    int32 seat = 1;
+}
+
+// 卡牌展示
+message S_NtfShowCards {
+    enum ShowType {
+        CheckCard = 0; //探查
+        ShowCard = 1;  //展示
+    }
+    int32                           to_seat  = 1;                   //消息发给谁的
+    int32                           card_seat= 2;                   //谁的卡牌
+    repeated gamedefv2.CGCardData   cards    = 3 [packed = false];  //展示卡牌
+    ShowType                        show_type = 4;                  //展示类型
+}
+
+// 决定 选择 选择效果牌
+message S_NtfSelectCards {
+    enum SelectType {
+        STInvalid  = 0;
+        STDecide   = 1;  //决定
+        STSelect   = 2;  //选择
+        STEffect   = 3;  //效果
+        STDivine   = 4;  //占卜
+        STDisaster = 5;  //灾难牌
+        STEmploy   = 6;  //雇佣
+    }
+    int32                           to_seat  = 1;                   //消息发给谁的
+    int32                           card_seat= 2;                   //谁的卡牌
+    repeated gamedefv2.CGCardData   cards    = 3 [packed = false];  //待选卡牌
+    int32                           spellid  = 4;                   //触发的技能 区分不同的提示
+    int32                           sel_seat = 5;                   //选择的人
+    SelectType                      sel_type = 6;                   //类型
+    repeated int32                  cards_cnt = 7 [packed = false];                  //待选择卡牌数量，如果有数据，需要跟cards一一对应
+}
+
+// 选择卡牌请求
+message C_ReqSelCard {
+    int32 spellid = 1;
+    uint32 sel_card_uid = 2;
+}
+
+// 选择卡牌结果
+message S_RespSelCard {
+    enum ErrCode {
+        Sucess = 0;
+        ErrParam = 1;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    int32 spellid = 3;
+    uint32 sel_card_uid = 4;
+    bool is_right = 5;  //是否正确
+}
+
+// 行动点数
+message S_NtfActionPoint {
+    enum NAPType {
+        napt_invalid = 0;
+        napt_switch_stage = 1;  //切换阶段
+    }
+    int32 seat = 1;
+    int32 point = 2;
+    NAPType typ = 3;
+    int32 point_limit = 4; //行动力上限
+}
+
+// 存活狼人卡个数
+message S_NtfWolfCardCnt {
+    int32 seat = 1;
+    int32 wolf_cnt = 2; //当前狼人数
+    int32 wolf_total = 3; //初始狼人数
+}
+
+// 今天不消耗行动点角色类型
+message S_NtfNotConsumeActPtRole {
+    repeated gameconf.CGCardType role_types = 1 [packed = false];
+}
+
+// 挡刀者数据
+message ObstructKillRoleData {
+    uint32 uid = 1; // 挡刀者角色UID
+    repeated gameconf.CGCardType types = 2 [packed = false]; // 被保护的角色类型
+}
+// 同步挡刀数据
+message S_NtfObstructKill {
+    int32 seat = 1; // 谁的挡刀数据
+    repeated ObstructKillRoleData ok_roles = 2 [packed = false];
+}
+
+// 同步阻止对手技能数据（巡逻）
+message PreventSpellData {
+    uint32 uid = 1; // 巡逻技能发动者
+    int32 spell_id = 2; // 阻止的技能id
+}
+message S_NtfPreventSpell {
+    int32 seat = 1; // 谁的巡逻数据
+    repeated PreventSpellData data = 2 [packed = false];
+}
+
+// 同步伪装信息(第二版本)
+message S_NtfMaskCardWolf {
+    uint32 wolf_uid = 1;
+    uint32 mask_uid = 2;
+    int32 mask_skin_id = 3;
+    int32 wolf_skin_id = 4;
+    bool is_expose = 5; //是否自爆
+    int32 cur_pk_value = 6; //
+    int32 max_pk_value = 7; //
+    int32 copy_skin_id = 8; // 复制皮肤
+    int32 mask_copy_role_type = 9;  //伪装的复制身份
+}
+
+// 同步信用值
+message S_NtfPkValue {
+    enum PkChangeWhy {
+        PCW_Invalid = 0;
+        PCW_PkAttack = 1;
+    }
+    int32 seat = 1;
+    uint32 uid = 2;
+    int32 cur_pk_value = 3;
+    int32 max_pk_value = 4;
+    int32 change_pk_value = 5; //要变换的点数(不一定是实际变化的值，客户端显示使用)
+    PkChangeWhy why = 6;
+}
+
+// 通知pkattack信息
+message S_NtfPkAttackInfo {
+    gamedefv2.CGGamerCardKey from_card = 1;
+    gamedefv2.CGGamerCardKey to_card = 2;
+}
+
+// 通知拼点结果
+message S_NtfPkResult {
+    uint32 Card       = 1; //发动技能的卡牌
+    bool   isSucc     = 2; //拼点是否成功
+    uint32 target_uid = 3; //目标卡牌uid
+}
+
+// 死亡数据通知
+message S_NtfCardDead {
+    int32 seat = 1;
+    gamedefv2.CGCardKey card = 2;
+    gamedefv2.DeadTyp dead_typ = 3;
+    int32 to_seat = 4; //录像
+    int32 dead_day = 5; // 死亡时间
+    uint32 scard = 6;   // 攻击者
+}
+
+// 玩家卡牌批量死亡数据通知
+message S_NtfGamerCardsDead {
+    int32 seat = 1;
+    repeated gamedefv2.CGCardKey card_list = 2  [packed = false];
+    gamedefv2.DeadTyp dead_typ = 3;
+    int32 to_seat = 4; //录像
+    int32 dead_day = 5; // 死亡时间
+}
+
+// 通知上阵天数变更
+message S_NtfCardsAlivedDay {
+    message CardOnBoardDay {
+        uint32 uid = 1; //卡牌uid
+        int32 onboard_day = 2; //上阵天数
+    }
+    int32 seat = 1;
+    repeated CardOnBoardDay cards_onboard_day = 2 [packed = false];
+}
+
+// 替换村庄英雄
+message S_NtfReplaceHero {
+    uint32 card_uid = 1;
+    gameconf.CGCardSubTyp sub_type = 2;
+    int32 seat = 3;
+    int32 to_seat = 4;
+}
+
+message S_NtfShapeCards {
+    repeated gamedefv2.CGCardData shape_cards = 1 [packed = false]; // 要变为的卡
+    repeated gamedefv2.CGCardData org_cards = 2 [packed = false]; // 原始卡
+    int32 seat = 3;
+    int32 to_seat = 4;
+}
+
+//==========================卡牌游戏断线重连==========================
+message S_SyncCardGame {
+    message CardAndMark {
+        gamedefv2.CGCardData Card = 1; // 卡
+        repeated gamedefv2.CGMarkAttr marks = 2 [packed = false]; // 标记
+        int32 copyRoleID = 3; // 复制的卡牌id
+        int32 copyRoleSkinId = 4; // 复制的卡牌使用的皮肤id
+        int32 onBoardDay = 5; // 上阵时间
+        int32 copyRoleTyp = 6; // 复制的身份
+        int32 deadTyp = 7; // 死亡方式（在墓地里时有效）
+        int32 deadDay = 8; // 死亡时间
+    }
+    message GamerData {
+        int32                  seat             = 1;
+        repeated CardAndMark   cards            = 2 [packed = false]; // 我的卡
+        int32                  card_back        = 3;
+        gamedef.PlayerRoleType player_role_type = 4;
+    }
+    repeated GamerData data     = 1 [packed = false];  //玩家数据
+    string             game_uid = 2;                   //游戏id
+}
+
+message S_SyncCardGameStage {
+    int32 ac_seat = 1; // 当前操作玩家
+    int32 first_seat = 2; // 先手玩家
+    int32 day_night = 4; // 第几天
+    gamedefv2.CGameStage stage = 5; // 阶段用于客户端判断白天黑夜
+    bool changed_cards = 6; // (开始阶段)是否换过牌了
+    message SeatAttr {
+        int32 seat = 1;
+        int32 action_points = 2; // 行动点数(白天)
+        int32 wolf_points = 3; // 狼人点数(黑夜)
+        int32 wolf_card_left = 4; // 剩余的狼人卡数量(不用了20180917)
+        repeated gameconf.CGCardType no_act_pt_role_types = 5 [packed = false]; // 今天不消耗行动点角色类型
+        repeated ObstructKillRoleData ok_roles = 6 [packed = false]; // 挡刀者数据
+        repeated int32 tombstones = 7 [packed = false]; // 墓碑位置信息
+        repeated PreventSpellData prevent_data = 8 [packed = false]; // 巡逻数据
+        int32 action_points_limit = 9; //行动力上限
+    }
+    repeated SeatAttr seat_attrs = 7 [packed = false]; // 双方状态
+    int32 time_bar = 8; // 剩余时间秒
+    int32 max_round = 9; //最大回合数
+    int32 cur_round = 10; //当前回合数
+    int64 time_end = 11;  // 时间条截至时间
+}
+
+//==========================玩家操作表现==========================
+message OperationTarget {
+    int32 seat = 1;
+    gamedefv2.CGZoneTyp zone = 2;
+    //卡牌位置，从1开始
+    int32 pos = 3;
+}
+
+message C_ReqCGGamerOperation {
+    gamedefv2.CGGamerOperationTyp type = 1;
+    OperationTarget card = 2;
+}
+
+message S_NtfCGGamerOperation {
+    gamedefv2.CGGamerOperationTyp type = 1;
+    OperationTarget card = 2;
+}
+
+//==========================挂机与取消============================
+// 挂机
+message C_ReqCGPlayerAFK {
+    bool isInto = 1;
+}
+
+message S_RespCGPlayerAFK {
+}
+
+message S_NoticeCGPlayerAFK {
+    int32 seat = 1;
+    bool isInto = 2;
+}
+
+// 逃跑
+message C_ReqCGPlayerRunaway {
+}
+message S_RespCGPlayerRunaway {
+}
+
+// 认输, 投了投了
+message C_ReqCGSurrender {
+
+}
+
+message S_RespCGSurrender {
+    enum ErrCode {
+        Succ = 0; // 投了
+        ErrGameData = 1; // 游戏数据错误
+        ErrUnknown = 2;
+    }
+    ErrCode err_code = 1;
+}
+
+// 发表情包
+message C_ReqCGSendInGameFace {
+    int32 seat = 1; // 自己的seat
+    string face = 2;
+}
+
+message S_NoticeCGSendInGameFace {
+    int32 seat = 1;
+    string face = 2;
+}
+
+//==========================狂欢模式============================
+// 发牌
+message S_NoticeCarnivalDealCard {
+    int32 seat = 1; // 玩家位置
+    int32 turn = 2; // 轮次, 第几张牌
+    repeated int32 card_ids = 3 [packed = false]; // 两张可以选的牌
+    int64 endtime = 4; //选牌结束的时间戳
+}
+
+// 请求选牌
+message C_ReqCarnivalSelectCard {
+    int32 turn = 1;
+    int32 card_selected = 2;
+}
+
+// 选牌返回
+message S_RespCarnivalSelectCard {
+    int32 turn = 1;
+    enum ErrCode {
+        Succ = 0;
+        ErrCardNotExist = 1;
+        ErrWrongTurn = 2;
+        Unknown = 3;
+    }
+    ErrCode err_code = 2;
+}
+
+// 通知选到了牌
+message S_NoticeCarnivalCardSelected {
+    int32 turn = 1; // 第几轮
+    int32 seat_got = 3; // 得到牌的玩家座位
+    gamedefv2.CGCardKey card_key = 4; // 牌的id, 在这个阶段如果是自己得到了对方选的牌那么cardid不可见
+    int32 role_id = 5;
+}
+
+// 选牌完毕后, 告知所有牌的信息
+message S_NoticeCarnivalAllCards {
+    int32 seat = 1;
+    repeated gamedefv2.CGCardKey my_cards = 2 [packed = false];
+    repeated gamedefv2.CGCardKey opp_cards = 3 [packed = false];
+}
+
+// =========================Boss模式===============================================
+// 通知boss的hp值
+message S_NoticeCardBossHP {
+    int32 seat = 1;
+    int32 pos = 2;
+    int32 hp = 3;
+}
+
+// 通知卡牌的霸体属性
+message S_NoticeCardEndure {
+    int32 seat = 1;
+    int32 pos = 2;
+    bool active = 3; // 激活或取消
+}
+
+// 通知卡牌的沉着属性
+message S_NoticeCardCalm {
+    int32 seat = 1;
+    int32 pos = 2;
+    bool active = 3; // 激活或取消
+}
+
+// 通知boss关卡的id
+message S_NoticeBossMissionId {
+    int32 mission_id = 1;
+}
+
+// 通知怒火值
+message S_NtfCardAnger {
+     int32 seat = 1;
+     int32 pos = 2;
+     int32 anger = 3;
+}
+
+// 卡背数据
+message C_ReqAllCardBack {
+}
+message S_RespAllCardBack {
+    int32 cur_back = 1;
+    repeated gamedef.CardBackItem card_backs = 2 [packed = false];
+    repeated gamedef.ExpiredBack  del_backs  = 3 [packed = false];
+}
+
+// 使用卡背
+message C_ReqChangeCurCardBack {
+    int32 card_back = 1;
+}
+message S_RespChangeCurCardBack {
+    enum ErrCode {
+        Sucess = 0;
+        ErrBackData = 1; // 获取玩家卡背数据错误
+        ErrNotOwn = 2; // 未拥有此卡背
+        ErrChange = 3; // 使用卡背失败
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    int32 card_back = 3;
+}
+
+//丘比特技能通知
+message S_NtfCupidSpellData {
+    gamedefv2.CGGamerCardKey card1 = 1;
+    gamedefv2.CGGamerCardKey card2 = 2;
+    int32 to_seat = 3;
+    gamedefv2.CGGamerCardKey spell_card = 4;
+}
+
+//加技能协议
+message S_NtfAddSpellData {
+    gamedefv2.CGGamerCardKey card = 1;
+    int32 spell_id = 2;
+    int32 from_pos = 3;
+}
+//删除技能协议
+message S_NtfRemoveSpell {
+    gamedefv2.CGGamerCardKey card = 1;
+    int32 spell_id = 2;
+}
+
+//替罪羊
+message S_NtfScapegoatInfo {
+    gamedefv2.CGGamerCardKey goat = 1;
+    gamedefv2.CGGamerCardKey tcard = 2;
+}
+
+//开始播放动画
+message S_NtfStartAnimation {
+    enum AniTyp {
+        ATNone      = 0;
+        ATDrawCard  = 1;
+        ATDawn      = 2;
+        ATSpell181  = 3;
+        ATSpell182  = 4;
+        ATSpell183  = 5;
+        ATSpell184  = 6;
+    }
+    AniTyp typ = 1;
+}
+
+//下一回合额外增加行动点数
+message S_NtfRoundExtraActPoints {
+    int32 msg_seat  = 1;
+    int32 extra_act_points  = 2;
+    int32 dead_seat = 3;
+    int32 dead_pos  = 4;
+    gamedefv2.CGZoneTyp zone_type = 5;
+}
+
+//通知信用点交换
+message S_NtfSwapPkValue {
+    int32                   msg_seat = 1;
+    int32                   seat1 = 2;
+    gamedefv2.CGCardData    card1 = 3;
+    int32                   seat2 = 4;
+    gamedefv2.CGCardData    card2 = 5;
+}
+
+//通知技能消耗点数变化
+message S_NtfCardDecActPt {
+    gamedefv2.CGGamerCardKey card   = 1;
+    int32                    act_pt = 2;
+}
+
+//通知白天回合变化
+message S_NtfGameRoundChange {
+    int32 max_rounds = 1;
+    int32 left_rounds = 2;
+}
+
+//伏击状态
+message S_NtfFjState {
+    enum FjState {
+        FSNoFj      = 0;    //无伏击
+        FSFjLocking = 1;    //伏击锁定
+        FSFjValid   = 2;    //伏击有效
+    }
+    message UserFj {
+        int32   seat = 1;
+        FjState state= 2;
+    }
+
+    repeated UserFj fj = 1 [packed = false];
+}
+
+//摸到间谍卡牌
+message S_NtfDrawSpyCards {
+    int32 seat = 1;     //谁的间谍牌
+    repeated gamedefv2.CGCardKey cards = 2 [packed = false];
+}
+
+//重置解谜游戏请求
+message C_ReqRestartPuzzleGame {
+}
+//回复重置解谜
+message S_RespRestartPuzzleGame {
+    enum ErrCode {
+        Sucess = 0;
+        ErrUnkown = 1;
+    }
+    ErrCode err_code = 1;
+}
+
+//ddz盟军夜晚选择狼刀目标
+message C_ReqSelectWKillTarget {
+    CGSpellTarget target = 1;
+}
+message S_RespSelectWKillTarget {
+    enum ErrCode {
+        Sucess     = 0;
+        ErrTarget  = 1;
+    }
+    int32         seat     = 1;
+    CGSpellTarget target   = 2;
+    ErrCode       err_code = 3;
+    string        err_msg  = 4;
+}
+
+//历练客户端抽牌请求
+message C_ReqSTDrawCard {
+    message TCard {
+        uint32                         id      = 1;
+        int32                          seat    = 2;
+        int32                          pos     = 3;
+        gameconf.CGCardType            ctype   = 4;
+        int32                          pkvalue = 5;
+        repeated gamedefv2.CGCardState states  = 6 [packed=false];
+        repeated gamedefv2.CGMarkAttr  marks   = 7 [packed=false]; // 标记
+    }
+    repeated TCard  cards  = 1 [packed=false];  //
+}
+message S_RespSTDrawCard {
+    enum ErrCode {
+        Sucess       = 0;
+        ErrNoTarget  = 1;
+    }
+    ErrCode       err_code = 1;
+    string        err_msg  = 2;
+}
+
+// 同步商人金币
+message S_NtfTraderGoldCoin {
+    int32 seat = 1;
+    int32 current_value = 2;
+    int32 change_value = 3;
+}
+
+//ai操作提示
+message C_ReqAiHelpTips {
+    int32 help_id = 1;
+}
+
+message S_RespAiHelpTips {
+    enum ErrCode {
+        Success     = 0;
+        ErrTimeout  = 1;    //超时
+        ErrPackage  = 2;    //ai回包处理出错
+        ErrDisable  = 3;    //功能未开启
+    }
+
+    ErrCode err_code = 1;
+    string err_msg  = 2;
+    int32 help_id = 3;
+    uint32 msg_id = 4;
+    string msg_data = 5;
+}
+
+// 强化技能生效(动画特殊处理)
+message S_NtfSpellAnimation {
+    enum AniType {
+        AniTypeNo = 0;
+        Intensify = 1;  //强化技能生效
+    }
+    AniType                             aType   = 1;
+    gamedefv2.CGGamerCardKey            card    = 2;
+    int32                               spellid = 3;
+    repeated gamedefv2.CGGamerCardKey   target  = 4 [packed=false];
+}
+
+// 合体召唤
+message C_ReqCGMergeSummon {
+    gamedefv2.CGCardKey target = 1; //目标卡牌
+    repeated gamedefv2.CGCardKey consumables = 2 [packed = false]; //消耗的卡牌素材
+}
+
+message S_RespCGMergeSummon {
+    enum ErrCode {
+        Success = 0;
+        ErrCardLocked = 1; //卡牌被锁定
+        ErrActPoints = 2;   //行动点不够
+        ErrTargetNotExist = 3; //目标卡牌不存在
+        ErrConditions = 4; //召唤条件不满足
+        ErrMoveOutSize = 5; //素材移到场外出错
+        ErrGameOver = 6; //游戏结束
+        ErrSummon = 7; //目标从合体区域移动到场上出错
+        ErrConsumableNotExist = 8; //素材卡牌不存在
+        ErrCardInCd = 9; //卡牌疲劳
+    }
+
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    int32 seat = 3;
+    gamedefv2.CGCardKey target = 4;
+    repeated gamedefv2.CGCardKey consumables = 5 [packed = false];
+}
+
+// 斗地主匹配
+message C_ReqDdzPair {
+    repeated int32 selected_cards = 1 [packed=false];
+}
+
+message S_RespDdzPair {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknown = 1;
+        ErrUserLevelLimit = 2; // 等级不足
+        ErrNotInTime = 3; //不在比赛时间内
+        ErrInRoom = 4; //已经在其他房间中
+        ErrBanUserPair = 5; //禁止匹配
+        ErrInvalidCardGroup = 7; // 卡组不满足配置
+        ErrForbidMatch = 9; //举报被禁止匹配
+        ErrNotHappyC = 13;  //hc不足
+        ErrNoCardGroup = 14; //无上阵套牌
+        ErrNoSelectedWolf = 15; //没有选择狼人牌
+        ErrForbidMulti = 16; //套牌中含有禁牌
+    }
+
+    ErrCode err_code = 1;
+    string  err_msg  = 2;
+    int64   ban_sec = 3;       // 禁止匹配时长
+}
+
+// ddz告诉玩家灾难牌
+message S_NtfDdzLandClaimDisasterCards {
+    int32          msg_seat       = 1;
+    repeated int32 disaster_cards = 2 [packed = false]; //灾难牌
+}
+// ddz通知抢
+message S_NtfDdzStartLandClaim {
+    int32   seat   = 1;     //谁开始下注
+    int64   end_ts = 2;     //下注结束时间戳
+}
+// ddz抢地主
+message C_ReqDdzLandClaim {
+    int32 claim_cnt = 1;
+}
+// ddz抢地主返回
+message S_RespDdzLandClaim {
+    message SeatCC {
+        int32 seat         = 1;
+        int32 claim_cnt    = 2;
+    }
+    repeated SeatCC seatCc = 1 [packed = false]; //每个人下注
+}
+// ddz通知抢地主结果
+message S_NtfDdzLandClaimResult {
+    int32                        ddz_wolf_seat    = 1;                  //魔王
+    repeated gamedefv2.CGCardKey disaster_cards   = 2 [packed = false]; //灾难牌
+    int32                        wolf_cc          = 3;                  //魔王下注多少
+}
+
+
+// ddz投降
+message C_ReqDdzSurrender {
+}
+message S_RespDdzSurrender {
+    enum ErrCode {
+        Succ        = 0; // 投了
+        WaitAlly    = 1; // 等待队友决定
+        Err1Min     = 2; // 1分钟内不能投
+    }
+    ErrCode err_code = 1;
+    int32   seat     = 2;
+    int64   ts       = 3;   //最后一次发起投降的时间
+}
+message C_ReqDdzDecideSurrender {
+    bool agree = 1;
+}
+message S_RespDdzDecideSurrender {
+    bool  agree = 1;
+    int32 seat  = 2;
+}
+
+// ddz通知魔王魂石
+message S_NtfDdzClaimCoin {
+    int32 wolf_cc = 1;   //魔王下注多少
+}
+
+// 对方曾洗回牌局的卡牌
+message C_ReqOppOffHandCards {
+
+}
+
+message S_RespOppOffHandCards {
+    repeated gamedefv2.CGCardData cards = 1 [packed = false];
+}
+
+//AI计算操作价值
+message C_ReqAIOptValue {
+  int32 opt_type = 1;//  1：计算可发动技能的卡牌价值    2：计算卡牌技能目标的价值
+  int32 seat_id = 2;
+  int32 pos = 3;
+}
+
+message S_RespAIOptValue {
+  message ValueInfo {
+    int32 pos = 1;
+    int32 seat = 2;
+    int32 value = 3;
+  }
+
+  int32 opt_type = 1;
+  int32 seat_id = 2;
+  int32 pos = 3;
+  repeated ValueInfo infos = 4[packed=false];
+}

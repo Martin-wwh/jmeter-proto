@@ -1,0 +1,1655 @@
+syntax = "proto3";
+
+package com.mapi.werewolf.gameproto;
+
+import "sanguosha.com/werewolf/gameproto/gamedef/game_def.proto";
+import "sanguosha.com/werewolf/gameproto/gamedefv2/game_def.proto";
+import "sanguosha.com/werewolf/gameproto/gameconf/game_config.proto";
+
+
+
+message Message_Server_ReqHeartBeat {
+    int64 timeStamp = 1;
+}
+
+message Message_Server_RespHeartBeat {
+    int64 timeStamp = 1;
+}
+
+message Message_Server_PrepareClose {
+}
+
+message Message_Server_ReqServerOnline {
+    uint32 serverType = 1;
+    uint32 serverId = 2;
+    int64 ServerStartTime = 3;
+}
+
+message Message_Server_RespServerOnline {
+    uint32 errCode = 1;
+    uint32 routerServerId = 2;
+}
+
+message Message_Server_NoticeServersOnline {
+    repeated Message_Server_ReqServerOnline servers = 1;
+}
+
+message Message_Server_NoticeServersOffline {
+    repeated uint32 serverIds = 1;
+}
+
+message Message_Server_ReportServerClose {
+}
+
+message Message_Server_NoticeServerClose {
+    uint32 serverid = 1;
+}
+
+
+message Gt_BatchUserMessage {
+    repeated uint64 userids = 1;
+    uint32 msgid = 2;
+    bytes msg = 3;
+}
+
+
+// Ls Lobby Server
+// Es Entity Server
+// Gs Game Server
+
+//
+//
+// 登录登出相关.
+
+message Gt_ReqAuth {
+    int64 seqid = 1;
+    string account = 2;
+    string sign = 3;
+    int32 login_flag = 4;
+    string imei = 5;
+    string platform = 6;
+    string channel = 7;
+}
+
+message Gt_RespAuth {
+    int64 seqid = 1;
+    int32 err_code = 2;
+    string err_msg = 3;
+    uint64 userid = 4;
+    string imei = 5;
+    int64 banSec = 6;
+    string platform = 7;
+    string channel = 8;
+}
+
+message GtLs_ReqLogin {
+    int64 seqid = 1;
+    uint64 userid = 2;
+    int32 session = 3;
+
+    string ip = 4;
+    string imei = 5;
+    string platform = 6;
+    string channel = 7;
+}
+
+message GtLs_RespLogin {
+    int64 seqid = 1;
+    uint64 userid = 2; // TODO 用 seqid 取代.
+    int32 err_code = 3;
+    string err_msg = 4;
+    bool uninitialized = 5;
+
+    uint32 entityid = 6;
+    uint32 gamesvrid = 7;
+}
+
+message GtLs_ReqLogout {
+    int64 seqid = 1;
+    uint64 userid = 2;
+    int32 session = 3;
+}
+
+message GtLs_RespLogout{
+    int64 seqid = 1;
+    uint64 userid = 2; // TODO 用 seqid 取代.
+}
+
+message GtLs_NoticeUserDisconnect {
+    uint64 userid = 1;
+    int32 session = 2;
+}
+
+// Ls 给 Gt 发
+message GtLs_NoticeUserLogout {
+    uint64 userid = 1;
+    int32 err_code = 2;
+}
+
+// Ls 给 Gt 发
+message GtLs_NoticeUserOnServer {
+    uint64 userid = 1;
+    uint32 server_type = 2;
+    uint32 server_id = 3;
+}
+
+message GtSp_NoticeUserOnServer {
+    uint64 userid = 1;
+    uint32 server_type = 2;
+    uint32 server_id = 3;
+}
+
+message LsEs_ReqLogin {
+    int64 seqid = 1;
+    uint64 userid = 2;
+
+    uint32 gateid = 3;
+    uint32 routerid = 4;
+    string  ip = 5;
+    string imei = 6;
+    string platform = 7;
+}
+
+message LsEs_RespLogin {
+    int64 seqid = 1;
+    int32 err_code = 2;
+    string err_msg = 3;
+    bool uninitialized = 4;
+	string nickname = 5;
+	gamedef.Friend friend = 6;
+    int32 user_level =7;
+    string avatar = 8;
+    int32 primary_clubid = 9;
+    repeated gamedef.DBUserLadderData ladder_data = 10; //天梯数据
+    repeated int32 guideRounds = 11 [packed=false];     //新手引导时的关卡
+    gamedef.DBCGEntScoreData normalData = 12;           //娱乐数据
+    gamedef.DBRaceMatch raceData = 13;                  //竞技数据
+    gamedef.LocationData location = 14;                 //地理位置信息
+    int32 gender = 15;                                  //性别
+    int64 birthday = 16;                               //创角时间
+}
+
+message LsEs_ReqLogout {
+    int64 seqid = 1;
+    uint64 userid = 2;
+}
+
+message LsEs_RespLogout {
+    int64 seqid = 1;
+}
+
+message LsEs_ReqUserData {
+    int64 seqid =1;
+    uint64 userid = 2;
+}
+
+message LsEs_RespUserData {
+    int64 seqid = 1;
+
+    enum ErrCode {
+        Succ = 0;
+        Unknow = 1;
+    }
+    ErrCode err_code = 2;
+    string err_msg = 3;
+    gamedef.UserData data = 4;
+}
+
+message Gt_NtfBanUserLogin {
+    uint64 userid  = 1;
+    int64 banSec   = 2;
+}
+
+// 重置清0用户的数据
+message AsEs_ReqResetUserData {
+    int64 seqid = 1;
+    uint64 userid = 2;
+}
+
+message EsAs_RespResetUserData {
+    int64 seqid = 1;
+    uint64 userid = 2;
+    enum ErrCode {
+        Succ = 0;
+        UserOnline = 1;
+        UserNotExist = 2;
+        Unknown = 3;
+    }
+    ErrCode err_code = 3;
+}
+
+// 获得排名赛的伪装用户得分
+message LsEs_ReqAiUsersMatchScore {
+    int64 Seqid = 1;
+    gamedef.MatchType MatchType = 2;
+    gameconf.RoomModeType RoomModeType = 3;
+    int32 Season = 4;
+    repeated uint64 Userid = 5;
+}
+
+message LsEs_RespAiUsersScore {
+    int64 Seqid = 1;
+    enum ErrCode {
+        Succ = 0;
+        Unknow = 1;
+    }
+    ErrCode Err_code = 2;
+    string Err_msg = 3;
+    bool sign_up = 4;
+    int64 score = 5;
+}
+
+// 通知Entity用户GateID变化, Entity需要推送用户数据变化消息.
+message LsEs_NoticeUserGateSvr {
+    uint64 userid = 1;
+    uint32 gateid = 2;
+    uint32 routerid = 3;
+    string ip = 4;
+}
+
+message LsEs_ReqFriendData {
+    int64 seqid = 1;
+    uint64 userid = 2;
+}
+
+message LsEs_ResFriendData {
+    int64 seqid = 1;
+    int32 err_code = 2;
+	gamedef.Friend friend = 3;
+}
+
+message LsEs_NoticeUpdateFriendData {
+    uint64 userid = 1;
+    gamedef.Friend friend = 2;
+    bool IsConfirm = 3;
+}
+
+
+message Es_NoticeUserNewLevel {
+    uint64 userid = 1;
+    int32 new_level = 2;
+}
+
+message Es_NoticeUserNewGuide{
+    uint64 userid = 1;
+    int32 finishRound = 2;
+}
+
+message Es_ReqUserSnapshot {
+    int64 seqid = 1;
+    uint64 userid = 2;
+}
+
+message Es_RespUserSnapshot {
+    int64 seqid = 1;
+    int32 err_code = 2;
+    gamedef.UserSnapshot snapshot = 3;
+    int32 ladder_history_high_lv = 4;
+}
+
+
+message Es_ReqRobotSnapshot {
+    int64 seqid = 1;
+    uint64 userid = 2;
+}
+
+message Es_RespRobotSnapshot {
+    int64 seqid = 1;
+    int32 err_code = 2;
+    gamedef.UserSnapshot snapshot = 3;
+}
+
+// 通知卡牌游戏更新数据到lobby
+message Es_NoticeUserCardGameData {
+    uint64 userid = 1;
+    gamedef.DBCGEntScoreData normalData = 2;          // 娱乐数据
+    gamedef.DBRaceMatch raceData = 3;                 // 竞技数据
+    repeated gamedef.DBUserLadderData ladderData = 4; // 天梯数据
+    gameconf.RoomModeType RoomType = 5;                // 房间类型
+    gameconf.GameResultType GameResult = 6;            // 游戏结果
+}
+
+message Es_NtfUserRaceData {
+    uint64 userid = 1;
+    gamedef.DBRaceMatch raceData = 2;                 // 竞技数据
+}
+//
+//
+// 房间相关.
+message LsGs_ReqNewGame {
+    int64 seqid = 1;
+    int32 roomid = 2;
+    string setting_type = 3;
+    string pwd = 4;
+    // 是否为匹配模式.
+    bool match_mode = 6;
+    // 赛事ID.
+    gamedef.MatchID matchid = 5;
+
+    int32 clubid = 7;
+    int32 club_points_cfgid = 8;
+}
+
+message LsGs_RespNewGame {
+    int64 seqid = 1;
+    int32 err_code = 2;
+    string err_msg = 3;
+}
+
+message LsGs_ReqDeleteGame {
+    int64 seqid = 1;
+    int32 roomid = 2;
+}
+
+message LsGs_RespDeleteGame {
+    int64 seqid = 1;
+}
+
+message LsGs_ReqChangeSeatAvailable{
+    int64 seqid = 1;
+    int32 roomid = 2;
+    int32 seatid = 3;
+    bool forbid = 4;
+}
+message LsGs_RespRoomOwner{
+    int64 seqid = 1;
+    int32 err_code = 2;
+    string err_msg = 3;
+    uint64 userid = 4;
+}
+
+message LsGs_ReqUserJoin {
+    int64 seqid = 1;
+    uint64 userid = 2;
+    uint32 routerid = 3;
+    uint32 gateid = 4;
+    uint32 entityid = 5;
+    int32 roomid = 6;
+    int32 seatid = 7;
+}
+
+message LsGs_RespUserJoin {
+    int64 seqid = 1;
+    int32 err_code = 2;
+    string err_msg = 3;
+}
+
+message LsGs_ReqUserQuit {
+    int64 seqid = 1;
+    uint64 userid = 2;
+    bool kick = 3;
+}
+
+message LsGs_RespUserQuit {
+    int64 seqid = 1;
+    // 是否是游戏中逃跑.
+    bool escape_game = 2;
+}
+
+message LsGs_NoticeUserDisconnect {
+    uint64 userid = 1;
+}
+
+message LsGs_NoticeUserReConnect {
+    uint64 userid = 1;
+    uint32 routerid = 2;
+    uint32 gateid = 3;
+    uint32 entityid = 4;
+}
+
+message LsGs_ReportGameStart {
+    int32 roomid = 1;
+    int64 start_time = 2;
+}
+
+message LsGs_ReportGameEnd {
+    int32 roomid = 1;
+}
+
+message LsGs_ReportGameEndSpec {
+    int32 roomid = 1;
+}
+
+message LsGs_ReqKickUserOutRoom {
+    int64 seqid = 1;
+    uint64 userid = 2;
+}
+
+message LsGs_RespKickUserOutRoom {
+    int64 seqid = 1;
+    int32 err_code = 2;
+    string err_msg = 3;
+}
+
+message LsGs_ReqRoomSettingSetUserLevelLimit {
+    int64 seqid = 1;
+    int32 roomid = 2;
+    int32 user_level_limit = 3;
+}
+
+message LsGs_RespRoomSettingSetUserLevelLimit {
+    int64 seqid = 1;
+    int32 user_level_limit = 2;
+}
+
+message LsGs_ReqRoomSettingSetPWD {
+    int64 seqid = 1;
+    int32 roomid = 2;
+    string pwd = 3;
+}
+
+message LsGs_RespRoomSettingSetPWD {
+    int64 seqid = 1;
+    string pwd = 2;
+}
+
+message LsGs_ReqRoomSettingEnableSpectate {
+    int64 seqid = 1;
+    int32 roomid = 2;
+    bool enable = 3;
+}
+
+message LsGs_RespRoomSettingEnableSpectate {
+    int64 seqid = 1;
+    bool enable = 2;
+}
+
+message CustomizedRobot {
+    string name = 1; // 指定名字(如果有)
+    int32 gender = 4;
+    enum CRType {
+        Invalid             = 0;
+        DemonHunting        = 1; // 猎魔挑战
+        Adventure           = 2; // 冒险模式
+        Train               = 3; // 练习模式
+        TestAI              = 4; // ai测试
+        EthnicExamine       = 5; // 入会考核
+        StrengthenTraining  = 6; // 历练
+    }
+    CRType type = 2;   // 为什么要这个机器人
+    uint64 param1 = 3; // 参数(如果有)
+}
+
+message LsGs_ReqStartGameWithUsers {
+    int64 seqid = 1;
+    int32 roomid = 2;
+    message User {
+        uint64 userid         = 1;
+        uint32 routerid       = 2;
+        uint32 gateid         = 3;
+        uint32 entityid       = 4;
+        int32  match_score    = 5;
+        bool   isRobot        = 6;
+        int32  aiCardGroupid  = 7; //只有isRobot为真的时候,这个值才有效
+        uint32 PKRoomId       = 8;
+    }
+    repeated User  users =  3;
+    int32 season = 4;
+    CustomizedRobot customized_rbt = 5;
+    int64 league_room_create_time = 6; //联赛房间创建时间
+}
+
+message LsGs_RespStartGameWithUsers {
+    int64 seqid = 1;
+
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    ErrCode err_code = 2;
+    string err_msg = 3;
+}
+
+// 通知gs发送玩家loading信息(协议一致性)
+message LsGs_NtfGameLoadingUsers {
+    int32 roomid = 1;
+}
+
+message LsGs_ReqUserChangeSeat {
+    int64 seqid = 1;
+    uint64 userid = 2;
+    int32 seatid = 3;
+}
+
+message LsGs_RespUserChangeSeat {
+    int64 seqid = 1;
+
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrUserReady = 2;
+        ErrGameStart = 3;
+    }
+    ErrCode err_code = 2;
+    string err_msg = 3;
+}
+
+//
+//
+// 游戏相关.
+// 请求robot数据
+message GsEs_ReqRobotData {
+    int64 seqid = 1;
+    int32 aicardgrpid = 2;
+}
+message GsEs_RespRobotData {
+    int64 seqid = 1;
+    int32 err_code = 2;
+    string err_msg = 3;
+
+    gamedef.UserData data = 4;
+    map<int32, int32> role_skins = 5;
+    gamedef.DBRaceMatch raceData = 6;
+    uint64 userid = 7;
+}
+
+message GsEs_ReqUserData {
+    int64 seqid = 1;
+    uint64 userid = 2;
+    uint32 update_version = 3;
+    gameconf.RoomModeType roomType = 4;
+    bool is_gamer = 5;
+}
+
+message GsEs_RespUserData {
+    int64 seqid = 1;
+    int32 err_code = 2;
+    string err_msg = 3;
+    gamedef.UserData data = 4;
+    gamedefv2.DBCardGroup v2CardGroup = 5;
+    uint32 update_version = 6;
+    gamedef.GameModeType gameType = 7;
+    map<int32, int32> role_skins = 8;
+    gamedef.DBRaceMatch raceData = 9;
+    int32  cardBackID = 10;
+    int32 reducedOperationTime = 11;    //举报减少的操作时间
+}
+
+//成功减少操作时间后，同步一下信息
+message GsEs_ReqActionTimeReduced {
+    int64 seqid     = 1;
+    uint64 userid   = 2;
+}
+
+message GsEs_RespActionTimeReduced {
+    int64 seqid         = 1;
+    int32 err_code      = 2;
+    string err_msg      = 3;
+}
+
+message GsEs_NoticeTimeoutInfo {
+    uint64 userid       = 1;
+    string gameUid      = 2;    //游戏id
+    int32 timeoutCnt    = 3;    //烧条次数
+}
+
+message EsGs_NoticeUserCGLadderRank {
+    uint64 userid   = 1;
+    int32 rank      = 2;
+}
+
+// 使用道具
+message Es_ReqUseGoods {
+    int64 Seqid = 1;
+    gameconf.GoodsCategory category = 2;
+    int32 id = 3;
+    bytes uid = 4;
+    string way = 5;
+    int32 cnt = 6;
+}
+
+message Es_RespUseGoods {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    int64 Seqid = 1;
+    ErrCode err_code = 2;
+    string err_msg = 3;
+
+    gameconf.GoodsCategory category = 4;
+    int32 id = 5;
+    bytes uid = 6;
+}
+
+message Es_ReqCheckGoodsInUsing {
+    int64 Seqid = 1;
+    gameconf.GoodsCategory category = 2;
+    int32 id = 3;
+}
+
+message Es_RespCheckGoodsInUsing {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    int64 Seqid = 1;
+    ErrCode err_code = 2;
+    string err_msg = 3;
+    gameconf.GoodsCategory category = 4;
+    int32 id = 5;
+}
+
+
+// 取消道具使用
+message LsEs_CancelUsegoods {
+    gameconf.GoodsCategory category = 1;
+    int32 id = 2;
+    bytes uid = 3;
+}
+
+//配置重载
+message As_ReqReloadCfg {
+    int64 seqid = 1;
+    repeated string cfgNames = 2[packed=false];
+}
+
+message As_RespReloadCfg {
+    int64 seqid = 1;
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrParseFile = 2;
+        ErrReloadCfg = 3;
+        ErrNoFile = 4;
+    }
+    ErrCode err_code = 2;
+    string err_msg = 3;
+}
+
+// 上传玩家数据
+message AsEs_ReqCreateUser {
+    int64 seqid = 1;
+    bytes user_data = 2 [packed=false];
+}
+
+//返回账号和密码
+message AsEs_RespCreateUser {
+    int64 seqid = 1;
+    string Info = 2;
+}
+
+// 上传公会数据
+message AsGds_ReqCreateGuild {
+    int64 seqid = 1;
+    bytes guild_data = 2 [packed=false];
+}
+
+//返回公会信息
+message AsGds_RespCreateGuild {
+    int64 seqid = 1;
+    string Info = 2;
+}
+
+message GtLs_NoticeUserChatChannel {
+    uint64 userid = 1;
+    gamedef.ChatChannelType channel_type = 2;
+    int32 channel_id = 3;
+    repeated int32 muti_channels = 4;
+}
+
+message Ls_SendMsgInSysChannel {
+    string msg = 1;
+}
+
+message GtLs_NoticeCloseChatChannel {
+    gamedef.ChatChannelType channel_type = 1;
+    int32 channel_id = 2;
+}
+
+message Es_ReqAddGoods {
+    int64 seqid = 1;
+    uint64 userid = 2;
+    repeated gamedef.Goods goods = 3;
+    string from = 4;                    //道具来源信息
+}
+
+message Es_RespAddGoods {
+    int64 seqid = 1;
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    ErrCode err_code = 2;
+}
+
+message Es_ReqSubGoods {
+    int64 seqid = 1;
+    uint64 userid = 2;
+    gameconf.GoodsCategory category = 3;
+    int32 id = 4;
+    bytes uid = 5;
+    int32 cnt = 6;
+    string from = 7;
+}
+
+message Es_RespSubGoods {
+    int64 seqid = 1;
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrNotEnough = 2;
+    }
+    ErrCode err_code = 2;
+    int32 cnt = 3;
+}
+
+
+// 邮件相关
+message Ms_ReqSendMail {
+    int64 seqid = 1;
+    repeated uint64 userid_list = 2;
+    gamedef.MailType type = 3;
+    string subject = 4;
+    string content = 5;
+    gamedef.MailPickCondition condition = 6;
+    uint32 ex_day = 7;
+    gamedef.MailExpireType ex_type = 8;
+    gamedef.Attachment attachment = 9;
+}
+
+message Ms_RespSendMail {
+    int64 seqid = 1;
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    ErrCode err_code = 2;
+    uint64 uid = 3;
+}
+
+message MsEs_ReqMailConditionUserInfo {
+    int64 seqid = 1;
+    uint64 userid = 2;
+}
+
+message MsEs_RespMailConditionUserInfo {
+    int64 seqid = 1;
+     enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    ErrCode err_code = 2;
+    uint64 userid = 3;
+    string channel = 4;
+    int64 birthtime = 5;
+    int32 level = 6;
+}
+
+message AsMs_ReqWithdrawMail {
+    int64 seqid = 1;
+    uint64 mailid = 2;
+}
+
+message AsMs_RespWithdrawMail {
+    int64 seqid = 1;
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    ErrCode err_code = 2;
+}
+
+message AsMs_ReqGetMailSlot {
+    int64 seqid = 1;
+    gamedef.MailType type = 2;
+}
+
+message AsMs_RespGetMailSlot {
+    int64 seqid = 1;
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    ErrCode err_code = 2;
+    repeated gamedef.DBMail mails = 3;
+}
+
+
+message EsMs_ReqUserLogin {
+    int64 seqid = 1;
+    repeated uint64 userids = 2;
+}
+
+message EsMs_ReqUserLogout {
+    int64 seqid = 1;
+    uint64 userid = 2;
+}
+
+message LsMs_ReqUserLogin {
+    uint32 gateid = 1;
+    uint64 userid = 2;
+    string ip = 3;
+    string platform = 4;
+    string channel = 5;
+}
+
+
+//
+//
+// 俱乐部相关.
+
+message Es_ReqUserClubs {
+    int64 seqid = 1;
+    uint64 userid = 2;
+}
+
+message Es_RespUserClubs {
+    int64 seqid = 1;
+    int32 err_code = 2;
+    string err_msg = 3;
+
+    repeated int32 clubids = 4;
+    int32 primary_club = 5;
+    int32 user_level = 6;
+    string user_name = 7;
+}
+
+message Es_UpdateUserClubs {
+    uint64 userid = 1;
+    repeated int32 clubids = 2;
+    repeated gamedef.ClubJobType club_jobs = 4;
+    int32 primary_club = 3;
+}
+
+message Ls_ReqBatchUserStatus {
+    int64 seqid = 1;
+    repeated uint64 userids = 2;
+}
+
+message Ls_RespBatchUserStatus {
+    int64 seqid = 1;
+    repeated gamedef.UserStatus status = 2;
+}
+
+message Ls_ReqBatchUserRooms {
+    int64 seqid = 1;
+    repeated uint64 userids = 2;
+}
+
+message Ls_RespBatchUserRooms {
+    int64 seqid = 1;
+    repeated int32 roomids = 2;
+    repeated gamedef.RoomSnapshot rooms = 3;
+}
+
+
+
+message Ls_NoticeUserConnected {
+    uint64 userid = 1;
+    uint32 gateid = 2;
+    uint32 routerid = 3;
+    string ip = 4;
+    string platform = 5;
+    string imei = 6;
+}
+
+message Ls_NoticeUserDisconnected {
+    uint64 userid = 1;
+}
+
+// TODO 废弃.
+message GtCb_SyncUserClubs {
+    uint64 userid = 1;
+    repeated int32 clubids = 2;
+}
+
+// 请求更新用户活跃度.
+message Es_UpdateUserActivity {
+    uint64 userid = 1;
+    int64 delta = 2;
+}
+
+// 通知其他服务用户活跃度变化.
+message Es_NoticeUserActivityUpdated {
+    uint64 userid = 1;
+    int64 delta = 2;
+    int64 new_activity = 3;
+}
+
+// 通知俱乐部魅力值更新
+message EsCs_NoticeClubsCharmUpdated {
+    message CharmData {
+       int32 clubid = 1;
+       uint32 charm = 2;
+       int64 ctime = 3;
+    }
+   repeated CharmData datas = 1 [packed=false];
+}
+
+// 加Money
+message AdEs_ReqAddTMoney {
+    int64 Seqid = 1;
+    uint64 userid = 2;
+    uint32 tmoney = 3;
+    // 单位分
+    uint32 RMBCnt = 4;
+    string product_id = 5;
+    int64 TS = 6;
+}
+
+message EsAd_RespAddTMoney {
+    enum ErrCode {
+        Succ = 0;
+        ErrNoUser = 1;
+        ErrLoadUser = 2;
+        AddFailed = 3;
+    }
+    int64 Seqid = 1;
+    ErrCode ECode = 2;
+}
+
+// 排名相关
+message LsKs_ReqMatchRankData {
+    int64 Seqid = 1;
+    gamedef.MatchType Type = 2;
+    int32 Season = 3;
+    int32 Top = 4;
+    bool Delete = 5;
+}
+
+message LsKs_RespMatchRankData {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    int64 Seqid = 1;
+    ErrCode Err_code = 2;
+    string Err_msg = 3;
+    int32 Rank = 4;
+
+    message User {
+        uint64 Userid = 1;
+        string Nickname = 2;
+        string Avatar = 3;
+        int64 Score = 4;
+    }
+    repeated User Users = 5;
+    int64 Score = 6;
+    gamedef.MatchType Type = 7;
+    int32 Season = 8;
+}
+
+// 启动ai测试
+message AsLs_ReqCGAiTest {
+    int64 seqid = 1;
+    int32 GameCnt = 2;
+    int32 TotalCnt = 3;
+    int32 GameTime = 4;
+    gamedef.MatchType MType = 5;
+}
+message AsLs_RespCGAiTest {
+    int64 seqid = 1;
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    ErrCode err_code = 2;
+    string err_msg = 3;
+}
+
+//通知每周奖励
+message KsEs_NtfWeekReward{
+
+}
+
+// 跑马灯消息
+message EsLs_NtfAddNoticeTask {
+	string noticeText = 1;
+}
+
+// 添加
+message AsLs_ReqAddNoticeTask {
+    int64 seqid = 1;
+    string startTime = 2;
+	string endTime = 3;
+	uint32 intervalSec = 4;
+	string noticeText = 5;
+    uint32 ID = 6;
+    uint32 Priority = 7;
+    string channel = 8;
+}
+message AsLs_RespAddNoticeTask {
+    int64 seqid = 1;
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    ErrCode err_code = 2;
+    string err_msg = 3;
+}
+// 删除
+message AsLs_ReqRemoveNoticeTask {
+    int64 seqid = 1;
+    uint32 ID = 2;
+}
+message AsLs_RespRemoveNoticeTask {
+    int64 seqid = 1;
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    ErrCode err_code = 2;
+    string err_msg = 3;
+}
+// 修改
+message AsLs_ReqEditNoticeTask {
+    int64 seqid = 1;
+    string startTime = 2;
+	string endTime = 3;
+	uint32 intervalSec = 4;
+	string noticeText = 5;
+    uint32 ID = 6;
+    uint32 Priority = 7;
+    string channel = 8;
+}
+message AsLs_RespEditNoticeTask {
+    int64 seqid = 1;
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    ErrCode err_code = 2;
+    string err_msg = 3;
+}
+
+message AsLs_ReqGetNoticeTask {
+    int64 seqid = 1;
+    uint32 ID = 2;
+}
+message AsLs_RespGetNoticeTask {
+    int64 seqid = 1;
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    ErrCode err_code = 2;
+    string err_msg = 3;
+
+    string startTime = 4;
+	string endTime = 5;
+	uint32 intervalSec = 6;
+	string noticeText = 7;
+    uint32 ID = 8;
+    uint32 Priority = 9;
+    string channel = 10;
+}
+
+message AsLs_ReqGetAllNoticeTask {
+    int64 seqid = 1;
+}
+message AsLs_RespGetAllNoticeTask {
+    int64 seqid = 1;
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    ErrCode err_code = 2;
+    string err_msg = 3;
+   repeated uint32 IDs = 4;
+}
+
+
+
+message UserCardGameTallyResp {
+    int64 delta_exp                = 1;
+    int64 delta_coins              = 2;
+    int64 delta_star               = 3;
+    gamedef.RewardCode reward_code = 4;
+    repeated  gamedefv2.DBCard    added_cards = 5[packed=false]; //奖励的卡牌
+    repeated  gamedefv2.DecomCard decom_cards = 6[packed=false]; //分解的卡牌
+    repeated  gamedef.Goods       goods_list  = 7[packed=false]; //奖励的道具
+    gamedef.IndulgedPunishType anti_indulged_typ = 8;  //防沉迷状态
+    bool is_got_treasure = 9; //是否获得宝图碎片
+    int32 delta_ethnic_exp         = 10;
+}
+
+// CardGameTally 修改卡牌游戏段位和积分
+message GsEs_ReqUserCardGameTally {
+    int64 seqid = 1;
+    uint64 userid = 2;
+    gamedef.UserCardGameTallyReq tally = 3;
+    bool robot = 4;
+}
+
+message GsEs_RespUserCardGameTally {
+    int64 seqid = 1;
+    int32 err_code = 2;
+    string err_msg = 3;
+    UserCardGameTallyResp resp = 4;
+}
+
+// 卡牌游戏结束,请求解散房间
+message GsLs_ReqCardGameOver {
+    int64 seqid = 1;
+    uint64 userid = 2;
+}
+
+// 返回解散房间
+message GsLs_RespCardGameOver {
+    int64 seqid = 1;
+    int32 err_code = 2;
+    string err_msg = 3;
+}
+
+// ai测试结果
+message GsEs_NtfAiTestResult {
+    gamedef.DBAiVSAiResult result  = 1;
+}
+
+// 请求删除airoom
+message GsLs_NtfDelRoomForAI {
+    int32 roomid = 1;
+}
+
+// 请求v2当前卡组是否可上阵
+//message LsEs_ReqUserCardGroupCanUse{
+//    int64 seqid = 1;
+//    uint64 userid = 2;
+//}
+//message LsEs_RespUserCardGroupCanUse {
+//    int64 seqid = 1;
+//    int32 err_code = 2;
+//    string err_msg = 3;
+//    bool CanUse = 4;
+//}
+
+message LsEs_ReqUserCanStartGame {
+    enum CheckType {
+        Invalid = 0;
+        CardGroup = 1;  //卡组是否可上阵
+        ReportNotForbid = 2;  //举报系统是否禁止游戏
+    }
+
+    int64 seqid = 1;
+    uint64 userid = 2;
+    gamedef.MatchType match_type = 3;
+    repeated CheckType check_list = 4;
+}
+
+message LsEs_RespUserCanStartGame {
+    int64 seqid = 1;
+    int32 err_code = 2;
+    string err_msg = 3;
+    map<int32, bool> check_results = 4;
+}
+
+// 请求竞技赛数据
+message LsEs_ReqUserRaceData {
+    int64 seqid = 1;
+    uint64 userid = 2;
+}
+message LsEs_RespUserRaceData {
+    int64 seqid = 1;
+    int32 err_code = 2;
+    string err_msg = 3;
+    gamedef.DBRaceMatch RaceData = 4;
+}
+
+message Es_NoticeUserNewNickName {
+    uint64 userid = 1;
+    string old_name = 2;
+    string nick_name = 3;
+}
+
+// 查找在线人数
+message AsLs_ReqUserOnlineCount {
+    int64 seqid = 1;
+}
+
+message AsLs_RespUserOnlineCount {
+    int64 seqid = 1;
+    int64 count = 2;
+}
+
+message Es_ReqUserGuild {
+    int64 seqid = 1;
+    uint64 userid = 2;
+}
+
+message Es_RespUserGuild {
+    int32 err_code = 1;
+    int64 seqid = 2;
+    uint32 guild_id = 3;
+    string user_name = 4;
+}
+
+message Es_ReqUpdateUserGuild {
+    int64 seqid = 1;
+    uint64 userid = 2;
+    uint32 guildid = 3;
+}
+
+message Es_RespUpdateUserGuild {
+    int64 seqid = 1;
+    uint32 err_code = 2;
+}
+
+// 公会约战转发
+message GsLs_ReqGuildDateWar {
+    int64  seqid     = 1;
+    uint32 guildid   = 2;
+    uint64 user_from = 3;
+    uint64 user_to   = 4;
+    int32  warid     = 5;
+}
+
+message LsGs_RespGuildDateWar {
+    enum ErrCode {
+        Succ = 0;
+        NotIdle = 1;
+    }
+    int64 seqid = 1;
+    ErrCode err_code = 2;
+    int32 delay_sec = 3;
+    int64 date_ts = 4;
+}
+
+// 请求lobby取消约战
+message GsLs_ReqGuildDateWarCancel {
+    int64  seqid     = 1;
+    uint32 guildid   = 2;
+    int32  warid = 3;
+}
+
+message GsLs_RespGuildDateWarCancel {
+    enum ErrCode {
+        Succ      = 0;
+        ErrUnknow = 1;
+    }
+    int64    seqid    = 1;
+    ErrCode  err_code = 2;
+    string   err_msg  = 3;
+}
+
+// 同步已创建角色数
+message EsLs_NoticeUserCntInDB {
+    int32 user_cnt = 1;
+}
+
+// 设置登录上限
+message AsLs_ReqSetLoginLimit {
+    int32 limit_cnt = 1;
+}
+// 设置测试人数上限
+message AsLs_ReqSetTestUserLimit {
+    int32 limit_cnt = 1;
+}
+
+// 公会商店升级
+message GsEs_NoticeGuildShopUpgrade {
+    repeated uint64 user_list = 1;
+}
+
+// 通知公会任务
+message GsEs_NtfGuildTask{
+    uint64 Userid = 1;
+    gameconf.TaskFiniConType task_type = 2;
+}
+
+// 通知公会寻访
+message GsEs_NtfGuildXF{
+    uint64 Userid = 1;
+}
+
+
+// 通知个人贡献的公会活跃度增加
+message GsEs_NtfAddGuildActivity{
+    uint64 Userid = 1;
+    int32 ActivityDelta = 2; //公会活跃度增量
+}
+
+// 公会积分增加
+message Es_NoticeUserGuildPointsAdd {
+    uint32 guildid = 1;
+    uint64 userid = 2;
+    int32 delta = 3;
+}
+
+// 请求user的上阵卡组
+message GdsEs_ReqUserBattleCardGroup {
+    int64 seqid = 1;
+    uint64 userid = 2;
+}
+message GdsEs_RespUserBattleCardGroup {
+    enum ErrCode {
+        Succ = 0;
+        Unknown = 1;
+    }
+    int64 seqid = 1;
+    uint64 userid = 2;
+    ErrCode err_code = 3;
+    int32 battle_group_id = 4;
+}
+
+// 公会中消耗钻石或金币
+message GdsEs_ReqUserSpendMoney {
+    int64 seqid = 1;
+    gameconf.ShopMoneyType money_type = 2;
+    int64  spent_cnt = 3;
+    uint64 userid    = 4;
+    string reason    = 5; //消费的理由
+}
+
+message GdsEs_RespUserSpendMoney {
+    enum ErrCode {
+        Succ         = 0;
+        Unknown      = 1;
+    }
+    ErrCode err_code = 1;
+    string  err_msg  = 2;
+    int64   seqid    = 3;
+}
+
+// 通知公会用户登录或登出
+message EsGds_NtfLogin {
+    uint64 userid  = 1;
+    uint32 guildid = 2;
+    int64  TS      = 3;              //时间戳
+    gamedef.LoginType LoginType = 4; // Login 或 logout
+}
+
+// 开始冒险模式
+message EsLs_ReqAdventureGameBegin {
+    int64 seqid = 1;
+    uint64 userid = 2;
+    int32 mission_id = 3;
+}
+
+message EsLs_RespAdventureGameBegin {
+    int64 seqid = 1;
+    uint32 err_code = 2;
+}
+
+// 改名通知(仅对有公会的玩家)
+message Es_NoticeUserNewNickNameGuild {
+    uint64 userid = 1;
+    string new_name = 2;
+    uint32 guild_id = 3;
+}
+
+// entity上传雷达数据到kitsvr
+message EsKt_NotifyRadarData {
+    gameconf.RoomModeType room_typ  = 1; // 游戏类型
+    int32                season    = 2; // 赛季
+    gamedef.DBRadarData  data      = 3; // 雷达数据
+}
+
+// kit更新entity雷达数据
+message KtEs_UptRadarData {
+    gameconf.RoomModeType room_typ  = 1; // 游戏类型
+    int32                season    = 2; // 赛季
+    gamedef.DBRadarData  data_min  = 3; // 雷达数据
+    gamedef.DBRadarData  data_max  = 4; // 雷达数据
+}
+
+// guild通知entity删除公会
+message GdsEs_NtfDeleteGuild {
+    uint64 userid = 1;
+}
+
+// 通过web服务加礼包
+message AsEs_ReqMailWebGift {
+    int64 seqid =1;
+    uint64 userid = 2;
+    string cdkey = 3;
+}
+message EsAs_RespMailWebGift {
+    int64 seqid =1;
+    int32  err_code = 2;
+    string err_msg = 3;
+}
+
+//
+message KsEs_ReqUserBirthday {
+    int64 seqid = 1;
+    uint64 userid = 2;
+}
+message EsKs_RespUserBirthday {
+    int64 seqid = 1;
+    int64 birthday = 2;
+}
+
+//请求离线好友信息
+message LsKs_ReqOfflineFriendsInfo {
+    int64 seqid = 1;
+    repeated uint64 friend_list = 2;
+    repeated uint64 confirm_list = 3;
+}
+message KsLs_RespOfflineFriendsInfo {
+    message FriendData {
+        uint64 userid = 1;
+        int32  lv = 2;
+        int32  ladder_season = 3;
+        int32  ladder_lv     = 4;
+        int32  ladder_star   = 5;
+        int32  ladder_win    = 6;
+        int32  ladder_total  = 7;
+    }
+    int64 seqid = 1;
+    repeated FriendData friends = 2;
+    repeated FriendData confirm = 3;
+}
+
+//同步更新性别信息
+message EsLs_NtfUserGender {
+    uint64 userid = 1;
+    int32  gender = 2;
+}
+//同步更新位置信息
+message EsLs_NtfUserLocation {
+    uint64               userid = 1;
+    gamedef.LocationData location = 2;
+}
+
+message EsLs_NtfUserDataChanged {
+    enum DataType {
+        TypEthnic = 0;  //势力
+    }
+
+    uint64 user_id = 1;
+    DataType data_type = 2;
+    gameconf.EthnicType ethnic = 3;
+}
+
+// 阿里身份证验证
+message WebCertifyIdCardParams {
+    string __userId = 1;
+    string verifyKey = 2;
+    string extData = 3;
+    string customerID = 4;
+}
+message WebCertifyIdCardResp {
+    message ICRValue {
+        int32  bizCode = 1;
+        string message = 2;
+    }
+    int32    code    = 1;
+    ICRValue value   = 2;
+    string   message = 3;
+}
+
+// 创建了公会
+message GdsLs_NtfCreateGuild {
+    uint64 userid     = 1;
+    string guild_name = 2;
+    uint32 guild_id   = 3;
+}
+
+//旁观
+message GsSp_ReqLookOnRoom {
+    int64   seqid               = 1;
+    int32   room_id             = 2; //房间id
+    uint64  spectator_user_id   = 3; //旁观者id
+    uint32  gate_id             = 4; //网关id
+    int32   player_seat         = 5; //观战席位
+    int64   game_start_time     = 6; //游戏开始时间
+    gameconf.RoomModeType room_type = 7; //房间类型
+}
+
+message GsSp_RespLookOnRoom {
+    int64 seqid = 1;
+    enum ErrCode {
+        Succ = 0;
+        Unknow = 1;
+    }
+
+    ErrCode err_code = 2;
+}
+
+message GsSp_NtfPlayerReady {
+    message state {
+        uint32 msg_id = 1;
+        bytes msg = 2;
+    }
+
+    int32   room_id             = 1; //房间id
+    uint64  spectator_user_id   = 2; //旁观者id
+    state  room_state           = 3;
+    uint32 gate_id              = 4; //网关id
+}
+
+//取消旁观
+message GsSp_ReqCancelLookOnRoom {
+    uint64  spectator_user_id = 1;
+}
+
+//解散旁观房间
+message GsSp_NtfRemoveLookOnRoom {
+    int32   room_id = 1;
+}
+
+//创建旁观房间
+message GsSp_NtfCreateLookOnRoom {
+    int32   room_id             = 1;
+    int64   game_start_time     = 2; //游戏开始时间
+    gameconf.RoomModeType room_type = 3; //房间类型
+}
+
+//游戏转发给旁观的消息
+message GsSp_GameMessage {
+    int32  room_id   = 1;
+    int32  msg_seat  = 2;
+    bool   msg_opp   = 3;
+    uint32 msg_id    = 4;
+    bytes  msg       = 5;
+    int64  timestamp = 6;
+}
+
+message GsSp_NtfGameStates {
+    message state {
+        uint32 msg_id = 1;
+        bytes msg = 2;
+    }
+
+    int32 room_id = 1;
+    repeated state states = 2;
+
+}
+
+// 通知记录玩家逃跑游戏信息
+message GsLs_NtfUserEscapeGame {
+    uint64  user_id = 1;
+    int32   room_mode = 2;
+}
+
+// 同步胜者牌组信息
+message GsKs_SyncWinnerCardGroupInfo {
+    gamedefv2.CardGroupInfo  cg_info = 1;
+}
+
+message UserKillInfo {
+    uint64 user_id = 1;
+    string user_name = 2;
+    repeated int32 card_id_list = 3;
+}
+
+message GsGds_SyncUserKillInfo {
+    repeated UserKillInfo  user_kill_list = 1;
+}
+
+message EsGds_ReqGuildTreasureLv {
+    int64 seqid = 1;
+    uint64 user_id = 2;
+    uint32 guild_id = 3;
+}
+
+message EsGds_SyncStartGuildCommission {
+    uint64 user_id = 1;
+    uint32 guild_id = 2;
+    int32 cost_item_cnt = 3; //消耗物品数
+}
+
+message EsGds_RespGuildTreasureLv {
+    int64 seqid = 1;
+      enum ErrCode {
+        Succ = 0;
+        Unknow = 1;
+    }
+    ErrCode err_code = 2;
+    int32 treasure_lv = 3; //宝图等级
+}
+
+message EsGds_ReqAddGuildActivity {
+    uint64 user_id = 1;
+    uint32 guild_id = 2;
+    int32 add_value = 3;
+    string reason = 4;
+}
+
+// 获取前n名用户id
+message RsEs_ReqGetTopUserIdList {
+    int64 seqid = 1;
+    int32 cnt = 2;
+}
+
+message RsEs_RespGetTopUserIdList {
+    int64 seqid = 1;
+    repeated uint64  user_id_list = 2;
+}
+
+message EsGds_ReqGuildLv {
+    int64 seqid = 1;
+    uint64 user_id = 2;
+    uint32 guild_id = 3;
+}
+
+message EsGds_RespGuildLv {
+    int64 seqid = 1;
+      enum ErrCode {
+        Succ = 0;
+        Unknow = 1;
+    }
+    ErrCode err_code = 2;
+    int32 guild_lv = 3;
+    int32 guild_shop_lv = 4;
+}
+
+// yoka填报实名返回数据
+message WebYokaSetRealNameResp {
+    message RetParams {
+	    string failReason     = 1;
+	    int32 mappedErrorCode = 2;
+        int32 status          = 3;
+        int32 isAdult         = 4;
+        int32 userAge         = 5;
+        int32 verification    = 6;
+    }
+	int32       return_code     = 1;
+	string      return_message  = 2;
+	RetParams   data            = 3;
+}
+// 更新玩家比赛数据统计
+message LsEs_UpdateUserPKRoomStat {
+    int32 join_cnt    = 1; //加入比赛次数
+    int64 creat_cnt   = 2; //创建比赛次数
+    uint32 rank       = 3; //获得的排名
+}
+// 更新玩家比赛结果
+message GsLs_UpdateGameResult {
+    gameconf.RoomModeType rmtype= 1;
+    uint64 user_id1 = 2;
+    uint64 user_id2 = 3;
+    gameconf.GameResultType res_user1 = 4;
+    gameconf.GameResultType res_user2 = 5;
+}

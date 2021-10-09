@@ -1,0 +1,2984 @@
+syntax = "proto3";
+
+package com.mapi.werewolf.gameproto;
+
+import "sanguosha.com/werewolf/gameproto/gamedef/game_def.proto";
+import "sanguosha.com/werewolf/gameproto/gameconf/game_config.proto";
+import "sanguosha.com/werewolf/gameproto/gamedefv2/game_def.proto";
+
+message Message_Client_ReqHeartBeat {
+    int64 timeStamp = 1;
+}
+
+message Message_Client_RespHeartBeat {
+    int64 timeStamp = 1;
+}
+
+// 玩家认证请求
+message CReqAuth {
+    string account = 1; //账号
+    string password = 2; //密码
+    gamedef.ExtraAccountInfo extra = 3; //账号额外信息
+    string ticket = 4; //通行证信息
+}
+
+message CRespAuth {
+    uint32 err_code = 1;
+    string errMsg = 2;
+    string account = 3;
+    uint64 userID = 4;
+    string sign = 5; //随机校验码
+    int64 unlockTime = 6; //解封时间
+    string ticket = 7; //通行证信息
+    string sndaID = 8;
+    string inputUserID = 9;
+    string pgt              = 10;   //大票
+    int32  RealNameStatus   = 11;   //0未实名，1已实名
+    bool   isAdult          = 12;   //
+    int32  userAge          = 13;   //
+    int32  thirdRealNameStatus = 14;   //三方 0未实名，1已实名
+    bool   thirdAdult          = 15;   //三方
+    int32  thirdAge            = 16;   //三方
+    int32  enable_id_certification = 17; // 实名认证开关 0关闭, 1强制, 2弹性
+    int32  verification            = 18; // 实名状态
+}
+
+// 登录
+message Message_Client_ReqLogin {
+    string account = 1;
+    string password = 2;
+    int32 login_flag = 3;           // 登录类型 原channel
+    string imei = 4;
+    string platform = 5;            // 系统
+    string channel = 6;             // 渠道类型 原companyid
+    string dispatch_channel = 7;    // 渠道全名 如5000_test
+    string pi = 8;                  // 渠道pi值
+}
+
+message Message_Client_RespLogin {
+    uint32 errCode      = 1;
+    //string account    = 2;
+    uint64 userId       = 3;
+    bool   need_init    = 4;   // 角色还未创建, 需要创建.
+    bool   is_gaming    = 5;   // 是否正在游戏.
+    int64  ban_sec      = 6;   // 封停时间，单位秒
+    int64  server_time  = 7;   // 服务器时间戳
+    int32  utcOffset    = 8;   // seconds east of UTC
+}
+
+message Message_Client_ReqLogout {
+}
+
+message Message_Client_NoticeLogout {
+    enum ErrCode {
+        Succ = 0;
+        ErrLostConn = 1;   //掉线
+        ErrKickOut  = 2;   //被踢掉
+        ErrBanLogin = 3;   //封停
+    }
+    int32 errCode = 1;
+    int64 ban_sec = 2; //禁止登录时间（秒）
+}
+
+//登录成功后 一次性请求玩家相关数据
+message C_ReqLoginData {
+}
+
+// 打开宝箱 .......
+message C_ReqUserOpenChest {
+    int32 ChestTyp = 1;
+    int32 Season = 2;
+    gamedef.MatchType Mtyp = 3;
+}
+
+message S_RespUserOpenChest {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrLadderData = 2;
+        ErrAlreadyGet = 3;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    repeated gamedef.Goods goodsList = 3 [packed=false];
+}
+
+//开卡包协议
+message C_ReqUserOpenCardBag {
+    gameconf.GoodsCategory Category = 1;
+    int32                  ID       = 2;
+    bytes                  Uid      = 3;
+}
+
+message S_RespUserOpenCardBag {
+    enum ErrCode {
+        Succ          = 0;
+        ErrUnknow     = 1;
+        ErrNonCardBag = 2;
+        ErrDayLimit   = 3;
+        ErrBanOpenByGm = 4; //禁止开包
+    }
+    ErrCode                      err_code   = 1;
+    string                       err_msg    = 2;
+    gameconf.GoodsCategory       Category   = 3;
+    int32                        ID         = 4;
+    bytes                        Uid        = 5;
+    repeated gamedefv2.DBCard    addedCards = 6 [packed=false];  //添加的卡牌
+    repeated gamedefv2.DecomCard decomCards = 7 [packed=false];  //分解掉的卡牌
+    int64                day_opened_cardbag  = 8;// 当天的第几包
+    int32                total_opened_cardbag = 9;// 累计的第几包
+}
+
+// 请求开卡包数据
+message C_ReqOpenedCardBagCnt {
+}
+message S_RespOpenedCardBagCnt{
+    enum ErrCode {
+        Succ          = 0;
+        ErrUnknow     = 1;
+    }
+    ErrCode err_code   = 1;
+    string  err_msg    = 2;
+    int64   day_opened_cardbag   = 3;// 当天的第几包
+    int32   total_opened_cardbag = 4;// 累计的第几包
+}
+
+// 请求玩家自己的数据.
+message C_ReqUserData {
+}
+
+message S_RespUserData {
+    int32 err_code                          = 1;
+    gamedef.UserData data                   = 2;
+    bool IsReward                           = 3;
+    gamedef.UserDetailCollect    collect    = 4; // 收集数据
+    int64 birth_day                         = 5; // 创角时间
+    int32 rank                              = 6; // 排名
+}
+
+// 上报在线时长
+message C_ReportOnlineSec {
+}
+
+message C_ReqInitUserData {
+    string nickname = 1;
+    gamedef.SexType sex = 2;
+    string avatar = 3;
+    string channel = 4;
+}
+
+message S_RespInitUserData {
+    enum ErrCode {
+        Succ = 0;
+        Unknow = 1;
+        Inited = 2; // 已经初始化了.
+        NicknameExist = 3;
+        NicknameIllegal = 4;
+		NicknameExistInRobot = 5;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+}
+
+//是否已领取每周奖励
+message C_ReqIsTakedWeekReward {
+
+}
+message S_RespIsTakedWeekReward {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    bool IsTaked = 3;
+    bool CanTake = 4; //新号一周內不可领取
+}
+
+// 领取每周奖励
+message C_ReqTakeWeekReward {
+
+}
+message S_RespTakeWeekReward {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrInBirthdayWeek = 2; // 新创账号一个自然周内不能领取奖励
+        ErrHaveTaked = 3; //已经领取过了
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    repeated gamedef.Goods goodsList  = 3 [packed=false];  //获得的道具
+}
+
+// 通知每周奖励
+message S_NtfWeekReward {
+    int32 chestid = 1; //宝箱id
+}
+
+// 更新玩家经验和等级数据.
+message S_NoticeUserExpLevel {
+    int64 delta_exp   = 1;  //经验,差值.
+    int64 new_exp     = 2;  //经验, 更新后的数值.
+    int64 total_exp   = 3;  //累计经验
+    int32 delta_level = 4;  //等级, 差值.
+    int32 new_level   = 5;  //等级, 更新后的数值.
+}
+
+// 通知宝箱奖励
+message S_NtfOpenChests {
+    repeated gamedef.Goods goodsList = 1 [packed=false];
+}
+
+// 当前卡牌碎片数量
+message S_NtfCurFrags {
+    int32 Frags = 1;
+}
+
+// 推送玩家卡牌皮肤信息
+message S_NftSkins {
+    gamedef.MsgType type = 1;
+    repeated gamedefv2.DBSkin skin_list = 2 [packed=false];
+}
+// 当前皮肤碎片
+message S_NtfCurSkinFrags {
+    int32 StaticFrags  = 1; //静态
+    int32 DynamicFrags = 2; //动态
+}
+// 当前品质核心数量
+message S_NtfCurQualityCores {
+    repeated gamedefv2.QualityCore QualityCores = 1 [packed=false];
+}
+
+// 上传头像
+message C_ReqUpLoadFigure {
+    string url = 1;
+}
+
+message S_RespUpLoadFigure {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrStringExceed = 2;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    string figure = 3;
+}
+
+message C_ReqBindAccount {
+    enum Type {
+        Invalid = 0;
+        SGS = 1;
+    }
+    Type type = 1;
+    string data = 2;
+}
+
+message S_RespBindAccount {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+}
+
+// 给用户添加金币
+message C_ReqRewardBindPhone{
+    uint64 UserID = 1;
+    gameconf.ShopMoneyType MoneyType = 2;
+    int64 Cnt = 3;
+}
+
+message S_RespRewardBindPhone {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrNotFindUser = 2;
+        ErrAddMoney = 3;
+        ErrAlreadyAdd = 4;
+    }
+    ErrCode Err_code = 1;
+    string Err_msg = 2;
+}
+
+// 编辑个性签名
+message C_ReqEditSignature {
+    string data = 1;
+}
+
+message S_RespEditSignature {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrInvalidUserID=2;
+        ErrStringExceed = 3;
+        ErrDBExec = 4;
+        ErrSqlGen = 5;
+    }
+
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    string signature = 3;
+}
+
+// 请求用户简要信息, 用于展示.
+message C_ReqUserSnapshot {
+    uint64 userid = 1;
+}
+
+message S_RespUserSnapshot {
+    bool succ = 1;
+    uint64 userid = 3;
+    gamedef.UserSnapshot snapshot = 4;        // 用户简略信息
+}
+
+// 批量请求用户简要信息, 注意控制数量, 保持在 50 个以内.
+message C_ReqBatchUserSnapshot {
+    repeated uint64 userids = 1 [packed=false];
+}
+
+message S_RespBatchUserSnapshot {
+    bool succ = 1;
+    repeated uint64 userids = 3 [packed=false];
+    repeated gamedef.UserSnapshot snapshots = 4 [packed=false];
+}
+
+// 批量请求离线时间
+message C_ReqBatchUserOfflineTime {
+    repeated uint64 userids = 1 [packed=false];
+}
+
+message S_RespBatchUserOfflineTime {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    repeated gamedef.UserOfflineTime users_offline_time = 3[packed=false];
+}
+
+
+// 请求用户详细信息.
+message C_ReqUserDetail {
+    uint64 userid = 1;
+}
+
+message S_RespUserDetail {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    uint64 userid = 3;
+    gamedef.UserData data = 4;
+    gamedef.UserDetailCollect    collect    = 5; // 收集数据
+    gamedef.UserDetailAchieve   achieve     = 6; // 成就信息
+    repeated gamedef.CardGroupUnit upload_cg_list = 7[packed=false]; //上传卡组列表
+    bool reqer_in_blacklist = 8; //请求方是否在该用户的好友黑名单中
+    int32 rank = 9; //排名
+}
+
+//根据昵称查找用户
+message C_ReqFindUserByName {
+	string nickname = 1;
+}
+
+message S_ResFindUserByName {
+    uint64 userid = 1;
+	string err_msg = 2;
+}
+
+message S_NoticeUserDataUpdate {
+    enum Type {
+        Invalid = 0;
+        Money = 1;
+        Coin = 2;
+        MedalExp = 3;
+        MatchPoints = 4;
+        CompeteCoin = 5;
+        Exp = 6;
+        GuildPoints = 7;
+        GameCnt = 8;
+        Gold = 9;
+        HappyCoin = 10;
+    }
+    Type type = 1;
+    int64 delta = 2;// 差值.
+    int64 new_value = 3;// 更新后的值.
+    gameconf.RoomModeType room_type = 4;  //房间模式
+    int32 game_cnt = 5;                  //游戏场次
+}
+
+// 任务
+message C_ReqAllTasks {}
+message S_RespAllTasks {
+    enum ErrCode {
+        Succ = 0;
+        ErrNoUser = 1;
+        ErrNoTaskData = 2;
+    }
+    ErrCode err_code = 1;
+    repeated gamedef.TaskDoing  TaskDoingList = 2 [packed=false];
+    int32    EDayLeftChangeCnt = 3;
+}
+//手动接取任务
+message C_ReqTakeTask {
+    uint32 TaskID = 1;
+}
+message S_RespTakeTask {
+    enum ErrCode {
+        Succ          = 0;
+        ErrNoTask     = 1;  //没任务配置
+        ErrCantHand   = 2;  //不能手动接取
+        ErrTaskData   = 3;  //任务数据错误
+        ErrTakeFailed = 4;  //接取条件不满足失败
+        ErrFinished   = 5;  //已经完成(包括完成但未领奖的情况)
+    }
+    ErrCode     err_code    = 1;
+    string      err_msg     = 2;
+    uint32      TaskID      = 3;
+}
+
+message S_NtfTaskState {
+    enum TaskState {
+        Take = 0;           //新接受的任务
+        UpdateCon = 1;      //更新条件
+        Finished = 2;       //任务完成
+        Rewarded = 3;       //领取奖励
+        Del  = 4;           //删除任务
+    }
+
+    TaskState   State = 1;
+    uint32      TaskID = 2;
+    uint32      ConditionID = 3;
+    int32       Count = 4;
+    gameconf.TaskType type = 5;
+}
+
+message C_ReqTaskByTyp {
+    repeated int32 type_list = 1 [packed=false]; // 任务类型
+}
+message TaskListByType {
+    int32 typ = 1; // 任务类型
+    repeated gamedef.TaskDoing task_list = 2 [packed=false];
+}
+message S_RespTaskByTyp {
+    enum ErrCode {
+        Succ = 0;
+        ErrNoUser = 1;
+        ErrNoTaskData = 2;
+    }
+    ErrCode err_code = 1;
+    repeated TaskListByType task_lists = 2 [packed=false];
+}
+
+message C_ReqGetTaskReward {
+    uint32 TaskID = 1;
+    int32  reward_id = 2;
+}
+
+message S_RespGetTaskReward {
+    enum ErrCode {
+        Succ = 0;
+        RewardFail  = 1; //领取奖励失败
+        NotFindUser = 2; //未找到user
+        NotFindTask = 3; //未找到task
+        NotFinish   = 4; //未完成
+    }
+    ErrCode err_code = 1;
+    repeated gamedef.Goods goods = 2 [packed=false];
+    uint32 TaskID = 3;
+}
+// 更换任务
+message C_ReqChangeTask {
+    uint32 task_id = 1;
+}
+message S_RespChangeTask {
+    enum ErrCode {
+        Succ          = 0;
+        NotFindUser   = 1; //未找到user
+        ErrTaskData   = 2; //任务数据错误
+        ErrNoTask     = 3; //没任务配置
+        ErrFinished   = 4; //已经完成(包括完成但未领奖的情况)
+        ErrTaskType   = 5; //任务类型非法
+        ErrTakeNoTask = 6; //没发现要接的新任务
+        ErrOverLimit  = 7; //更换次数超限
+    }
+    ErrCode     err_code    = 1;
+    uint32      task_id     = 2;
+    uint32      new_task_id = 3;
+}
+// 获取勋章每日悬赏
+message C_ReqMedalHuntingTask {
+}
+message S_RespMedalHuntingTask {
+    enum ErrCode {
+        Succ          = 0;
+        NotFindUser   = 1; //未找到user
+        ErrTaskData   = 2; //任务数据错误
+    }
+    ErrCode     err_code            = 1;
+    int32       daily_change_cnt    = 2;// 每日勋章日任务 日更换次数
+    int32       weekly_change_cnt   = 3;// 每日勋章周任务 日更换次数
+    repeated uint32 task_id_list    = 4 [packed=false];// 每日勋章日任务列表
+}
+
+//请求任务数据
+message C_ReqTaskData {
+}
+message S_RespTaskData {
+    enum ErrCode {
+        Succ = 0;
+        ErrNoUser = 1;
+        ErrNoTaskData = 2;
+    }
+    ErrCode err_code = 1;
+}
+message S_NtfTaskData {
+    gamedef.TaskDataClient  task_data = 1;
+}
+
+// 获取游戏对局获得的金币
+message C_ReqCoinFromGame {
+}
+message S_RespCoinFromGame {
+    enum ErrCode {
+        Succ       = 0;
+        ErrRedis   = 1; //读取redis出错
+    }
+    ErrCode     err_code   = 1;
+    int64       coin       = 2;//游戏对局获得的金币
+}
+//
+// 邮件.
+message S_NtfNewMail {
+    gamedef.MailType mailType = 1; //邮件类型
+}
+
+message S_NtfMailsStatus {
+    repeated uint64 mail_id_list = 1 [packed=false]; //邮件id列表
+    repeated int32 mail_status_list = 2 [packed=false]; //邮件状态列表
+}
+
+message C_ReqNewMail {
+    uint64 last_uid = 1;
+    uint64 last_born_uid = 2;
+    int32 apk_ver = 3;
+    int32 ios_ver = 4;
+    int32 pc_ver = 5;
+}
+
+message S_RespNewMail {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    repeated gamedef.Mail mails = 3 [packed=false];
+}
+
+message C_ReportReadMail {
+    repeated uint64 uid = 1 [packed=false];
+}
+
+// 获取邮件附件.
+message C_ReqGetAttachment {
+    uint64 uid = 1;  // 邮件的uid，不是用户的userid
+}
+
+message S_RespGetAttachment {
+    enum ErrCode {
+        Succ            = 0;
+        ErrUnknow       = 1;
+        ErrMailNotExist = 2;    //邮件不存在
+        ErrNoAttachment = 3;    //邮件无附件
+        ErrMailExpire   = 4;    //邮件已过期
+        ErrNotOwnMail   = 5;    //不拥有该邮件
+        ErrMyMailExpire = 6;    //邮件对自己已过期
+        ErrAlreadyGet   = 7;    //附件已领取
+        ErrAddGoods     = 8;    //添加附加失败
+        ErrRepeated     = 9;    //操作频繁
+    }
+    ErrCode err_code = 1;
+    uint64 uid = 2;
+    gamedef.Attachment attachment = 3;
+}
+
+// 一次领取全部未领取的邮件附件
+message C_ReqGetAllMailsAttachment {
+    repeated uint64 uid_list = 1 [packed=false];               // 需要领取的邮件uid列表
+}
+
+message S_RespGetAllMailsAttachment {
+    S_RespGetAttachment.ErrCode err_code = 1;
+    gamedef.Attachment attachment = 2;          // 领取到的全部附件
+    repeated uint64 uid_list = 3 [packed=false]; // 这次领取过的邮件的uid列表
+}
+
+//测试发送邮件
+message C_ReqSendMail {
+    gamedef.MailType type = 1;
+    string subject = 2;
+    string content = 3;
+    uint32 ex_day = 4;
+    gamedef.MailExpireType ex_type = 5;
+    gamedef.Attachment attachment = 6;
+}
+
+message S_RespSendMail {
+    int32 err_code = 1;
+}
+
+//
+//
+// 聊天频道相关.
+
+message C_ReqJoinChatChannel {
+    // 目前只有 CCWorld 有效.
+    gamedef.ChatChannelType type = 1;
+    int32 id = 2;
+}
+
+message S_RespJoinChatChannel {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrFull = 2;
+        ErrChannelMaxLimit = 3; //超出最大频道限制
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    gamedef.ChatChannelType type = 3;
+    int32 id = 4;
+    int32 max_channel_id = 5; //最大频道id
+}
+
+message C_ReqQuitChatChannel {
+    // 目前只有 CCWorld 有效.
+    gamedef.ChatChannelType type = 1;
+}
+
+message S_RespQuitChatChannel {
+    gamedef.ChatChannelType type = 3;
+}
+
+message C_ReqChatChannelList {
+    // 目前只有 CCWorld 有效.
+    gamedef.ChatChannelType type = 1;
+}
+
+message S_RespChatChannelList {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+
+    gamedef.ChatChannelType type = 4;
+
+    message Channel {
+        int32 id = 1;
+        gamedef.CrowdStatus crowd_status = 2;
+        int32 user_cnt = 3;
+    }
+    repeated Channel channels = 3 [packed=false];
+}
+
+message C_SendMessageInChannel {
+    gamedef.ChatChannelType type = 1;
+    int32 id = 2;
+    string msg = 3;
+    int32 bubble_good_id = 4; //气泡道具id
+    int32 speaker_good_id = 5; //喇叭道具id
+}
+
+message S_RespSendMessageInChannel {
+     enum ErrCode {
+        Succ = 0;
+        NotInUsing = 1;
+        UseFailed = 2;
+
+    }
+    ErrCode err_code = 1;
+    int32 good_id = 2;
+}
+
+message S_NoticeBannedTalkingInWorld {
+}
+
+message S_MessageInChannel {
+    gamedef.ChatChannelType channel_type = 1;
+    int32 channel_id = 2;
+    string msg = 3;
+    message User {
+        uint64 userid = 1;
+        string nickname = 2;
+        string avatar = 3;
+    }
+    User from_user = 4;
+    int64 ts = 5;
+    int32 bubble_good_id = 6; //气泡道具id
+}
+
+//
+//
+// 商城
+message C_ReqBuyShopGoods {
+    uint32    GoodsID = 1;
+    uint32    Count = 2;
+    int32     ShopMoneyType = 3;
+    uint32    Price = 4;
+    bool      IsTopSkin = 5;   //是否为直升皮肤
+    uint32    UpTime = 6;
+    int32     MGoodsCate = 7;   //道具货币类型
+    int32     MGoodsId = 8;     //道具货币id
+}
+
+message S_RespBuyShopGoods {
+    int32   Result  = 1;    //BuyShopGoodsErrCode
+    uint32  GoodsID = 2;
+    uint32  Count   = 3;
+    int64   BanSec  = 4;    //禁止玩家充值购买多少秒
+}
+
+message C_ReqShopLimitGoods {
+}
+
+message S_RespShopLimitGoods {
+    message TOffPriceData {
+        int32 group_id     = 1;
+        int64 refresh_time = 2;
+    }
+    repeated gamedef.ShopGoodsData  ShopGoods = 1 [packed=false];
+    repeated TOffPriceData          OffPrice  = 2 [packed=false];
+}
+
+message S_NtfShopLimitGoods {
+    gamedef.MsgType msgType = 1;
+    repeated gamedef.ShopGoodsData  ShopGoods = 2 [packed=false];
+}
+
+//刷新商店
+message C_ReqRefreshShop {
+    int32 shop_type = 1;
+}
+
+message S_RespRefreshShop {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknown = 1;
+        ErrWithinThreeMinutes = 2;
+        ErrReachRefreshLimit = 3; //已达刷新上限
+    }
+
+    ErrCode     err_code = 1;
+    string      err_msg = 2;
+}
+
+//登录时请求什么商店数据
+message C_ReqMysteryShop {
+}
+
+//神秘商店刷新通知，包括自动和手动
+message S_NoticeRefreshShop {
+    enum GoodsType {
+        goods_invalid       = 0;
+        goods_can_buy       = 1; //可购买
+        goods_already_buy   = 2; //已购买
+        goods_already_owned = 3; //已拥有
+    }
+    message GoodsData {
+        GoodsType goods_type    = 1;
+        int32 goods_id          = 2;
+        int32 goods_cnt         = 3;
+    }
+    repeated GoodsData goods = 1 [packed=false];
+    uint32 free_refresh_times = 2; //免费刷新次数
+    bool be_viewed = 3; //被查看过
+    int64 end_time = 4; //结束时间
+    int64 start_time = 5; //开始时间
+}
+
+//上报神秘商店被查看过
+message C_ReportViewShopGoods {
+    int32 shop_type = 1;
+}
+
+//同步商品状态
+message S_NoticeMysteryShopGoodsStatus {
+    message GoodsStatus {
+        int32 goods_id = 1;
+        S_NoticeRefreshShop.GoodsType goods_status = 2;
+    }
+
+    repeated GoodsStatus goods_status = 1 [packed=false];
+}
+
+// 系统消息
+message Ss_SystemMsg {
+    enum SystemMsgType {
+        ToInvalid = 0;
+        ToFriends = 1;
+        ToAll = 2;
+    }
+    enum ParamType {
+        PaTypeInvalid = 0;
+        CreateMatch = 3;
+    }
+
+    uint64           UserID = 1;
+    SystemMsgType    MsgType = 2;
+    ParamType        PaType = 3;
+    repeated int64   IParams = 4 [packed=false];
+    repeated string  SParams = 5 [packed=false];
+}
+
+// 系统通知
+message Ss_SystemNotice {
+    string info = 1;
+    string channel = 2;
+}
+
+// 重载配置文件
+message Ss_SysReloadCfg {
+    string version = 1;
+    repeated string files = 2[packed=false];
+	bool reboot_client = 3;
+}
+
+// 请求离线消息
+message C_ReqOfflineSysMsg {
+}
+
+// 通知时间刷新
+message S_NtfTimeRefresh {
+    enum EventType {
+          EventDay = 0;
+    }
+    EventType event_type = 1; //刷新类型
+}
+
+// 新手引导
+message C_ReqGuideMission {
+
+}
+
+message S_RespGuideMission {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrNotFindUser = 2;
+    }
+    ErrCode err_code = 1;
+    string  err_msg = 2;
+    repeated int32 finishedRounds = 3[packed=false];
+}
+
+// 情景教学
+message C_ReqHelpMission {
+
+}
+
+message S_RespHelpMission {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrNotFindUser = 2;
+    }
+    ErrCode err_code = 1;
+    string  err_msg = 2;
+    repeated int32 finishedRounds = 3[packed=false];
+}
+
+message TFiniGuideRounds {
+    int32 round = 1;
+    bool win = 2;
+}
+message C_ReqFinishGuideMission {
+    repeated TFiniGuideRounds rounds = 1 [packed=false];
+}
+
+message S_RespFinishGuideMission {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrNotFindUser = 2;
+    }
+    ErrCode err_code = 1;
+    string  err_msg = 2;
+    repeated TFiniGuideRounds finishedRounds = 3 [packed=false];
+    // 经验值
+    int64 expCnt = 4;
+    // 金币
+    int64 coinCnt = 5;
+}
+
+// 完成帮助
+message C_ReqFinishHelpMission {
+    int32 round = 1;
+}
+
+// 客户端上报引导关卡开启
+message C_ReportGuideMissionStart {
+    int32 round = 1;
+    bool is_from_growguide = 2; //是否通过成长指南进入
+}
+
+// 请求新手引导使用的aigame
+message C_ReqAIGameForGuide {
+    int32                round    = 1;
+    gameconf.RoomModeType RoomType = 2;
+}
+
+message S_RespAIGameForGuide {
+    enum ErrCode {
+        Succ           = 0;
+        ErrUnknow      = 1;
+        ErrNotFindUser = 2;
+    }
+    ErrCode err_code = 1;
+    string  err_msg  = 2;
+}
+
+// 请求训练模式的游戏
+message C_ReqStartTrainGame {
+    gameconf.EthnicType Ethnic = 1;
+}
+message S_RespStartTrainGame {
+    enum ErrCode {
+        Succ           = 0;
+        ErrUnknow      = 1;
+        ErrNotFindUser = 2;
+        ErrUserInvalid = 3;
+        ErrUserLv      = 4;
+        ErrEthnicCfg   = 5;
+    }
+    ErrCode err_code = 1;
+    gameconf.EthnicType Ethnic = 2;
+}
+
+// 请求训练模式的游戏
+message C_ReqStrengthenTrainingGame {
+    int32 train_cfg_id = 1;
+}
+message S_RespStrengthenTrainingGame {
+    enum ErrCode {
+        Succ           = 0;
+        ErrUnknow      = 1;
+        ErrNotFindUser = 2;
+        ErrParam       = 3;
+    }
+    ErrCode err_code = 1;
+    string  err_msg  = 2;
+}
+
+//新手教学
+message C_ReqNoviceGuideGame {
+    int32   round   = 1;        //第几关
+}
+
+message S_RespNoviceGuideGame {
+    enum ErrCode {
+        Succ           = 0;
+        ErrUnknow      = 1;
+        ErrNotFindUser = 2;
+    }
+    ErrCode err_code = 1;
+    string  err_msg  = 2;
+}
+
+//新手场首场
+message C_ReqFirstNoviceGame {
+
+}
+
+message S_RespFirstNoviceGame {
+    enum ErrCode {
+        Succ           = 0;
+        ErrUnknow      = 1;
+        ErrNotFindUser = 2;
+    }
+    ErrCode err_code = 1;
+    string  err_msg  = 2;
+}
+
+
+// 请求卡牌娱乐模式战绩
+message C_ReqCGNormalModeData {
+
+}
+
+message S_RespCGNormalModeData {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrNotFindUser = 2;
+    }
+    ErrCode err_code = 1;
+    string  err_msg = 2;
+    gamedef.DBCGEntScoreData record = 3;
+}
+
+// 请求卡牌模式的排行榜
+message C_ReqCGLadderRankTops {
+    int32 Top = 1;
+    gamedef.MatchType mtyp = 2;
+}
+
+message S_RespCGLadderRankTops {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    ErrCode err_code = 1;
+    string  err_msg = 2;
+    gamedef.MatchType mtyp = 4;
+    repeated gamedef.CGLadderUserSnap SnapInfos=5 [packed=false];
+}
+
+message C_ReqUserCGLadderRank {
+    gamedef.MatchType mtyp = 1;
+}
+
+message S_RespUserCGLadderRank {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrNotFindUser = 2;
+    }
+    ErrCode err_code = 1;
+    string  err_msg = 2;
+    gamedef.MatchType mtyp = 3;
+    gamedef.CGLadderUserSnap SnapInfos=4;
+    int32 Rank = 5;
+}
+
+// 请求默认卡组
+message C_ReqUserCGCurCardGroup {
+    uint64 userid = 1;
+}
+
+message S_RespUserCGCurCardGroup {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    ErrCode err_code = 1;
+    string  err_msg = 2;
+    uint64 userid = 3;
+    string cg_name = 4;
+    gameconf.EthnicType Ethnic = 5;
+    repeated gamedefv2.DBCard GroupCards = 6 [packed = false];
+
+}
+
+// 上报分享操作
+message C_ReqReportShare {
+    int32 ShareCnt  = 1;
+}
+
+message S_RespReportShare {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrNotFindUser = 2;
+    }
+    ErrCode err_code = 1;
+    string  err_msg = 2;
+}
+
+// 上报聊天
+message C_ReqReportChat {
+    int32 ChatCnt                       = 1;  // 次数
+    gamedef.ChatChannelType ChatChannel = 2;  // 渠道
+}
+
+message S_RespReportChat {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrNotFindUser = 2;
+    }
+    ErrCode err_code = 1;
+    string  err_msg = 2;
+}
+
+// 卡牌模式天梯奖励
+message C_ReqUserCGLadderReward {
+    int32 Season = 1;
+    gamedef.MatchType mtyp = 2;
+}
+
+message S_RespUserCGLadderReward {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrNotFindUser = 2;
+        ErrNotInTime = 3;
+        ErrRewarded = 4;
+        ErrLadderData = 5;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    int32 ChestType = 3;
+    gamedef.MatchType mtyp = 4;
+}
+
+// 卡牌模式天梯数据
+message C_ReqUserCGLCurSeasonData {
+    gamedef.MatchType mtyp = 1;
+}
+
+message S_RespUserCGLCurSeasonData {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    ErrCode err_code = 1;
+    string  err_msg  = 2;
+    gamedef.MatchType mtyp                 = 3;
+    bool  needInherit                      = 4;
+    bool  canAward                         = 5;
+    bool  seasonOver                       = 6;
+    string nextSeasonBeginTime             = 7;
+    gamedef.DBUserLadderData curLadderData = 8;
+    int32 CurProtectCnt                    = 9; // 当前段位的保护次数
+    int32 ProtectGameCnt                   = 10;// 当前段位保护游戏计次
+}
+
+// 卡牌模式请求继承
+message C_ReqUserCGLInheritLevel {
+    gamedef.MatchType mtyp = 1;
+}
+
+message S_RespUserCGLInheritLevel {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    gamedef.MatchType mtyp = 3;
+    gamedef.DBUserLadderData curLadderData = 4;
+    int32 lastSeasonLevel = 5; //上个赛季的当前level
+}
+
+//卡牌模式天梯的历史数据
+message C_ReqUserHistorySeasons {
+    gamedef.MatchType mtyp = 1;
+}
+
+message S_RespUseHistorySeasons {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrNotFind = 2;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    gamedef.MatchType mtyp = 3;
+    repeated gamedef.DBUserLadderData seasonDatas = 4 [packed=false];
+}
+
+// 请求战绩(赛事统计数据)
+message C_ReqMatchStatsData {
+    gamedef.MatchType   mtyp   = 1;
+}
+message S_RespMatchStatsData {
+    enum ErrCode {
+        Succ       = 0;
+        ErrUnknow  = 1;
+        ErrNotFind = 2;
+    }
+    ErrCode                         err_code    = 1;
+    string                          err_msg     = 2;
+    gamedef.MatchType               mtyp        = 3;
+    repeated gamedef.MatchStatsData statsDatas  = 4 [packed=false];
+}
+
+// 请求天梯战绩(赛事统计数据)
+message C_ReqLadderStatsData {
+}
+
+message S_RespLadderStatsData {
+    enum ErrCode {
+        Succ       = 0;
+        ErrUnknow  = 1;
+        ErrNotFind = 2;
+    }
+    ErrCode err_code = 1;
+    string  err_msg  = 2;
+    repeated gamedef.MatchStatsData curStatsDatas   = 3 [packed=false];
+    repeated gamedef.MatchStatsData lastStatsDatas  = 4 [packed=false];
+    repeated gamedef.MatchStatsData totalStatsDatas = 5 [packed=false];
+}
+
+// 实名认证web
+message C_ReqSetRealName {
+    string snda_id      = 1;    //yoka数字id
+    string pgt          = 2;    //大票
+    string real_name    = 3;
+    string id_card      = 4;
+}
+message S_RespSetRealName {
+    enum ErrCode {
+        Succ = 0;
+        ErrParam      = 1;
+        ErrYokaFailed = 2;      // yoka实名失败
+        ErrData = 3;            // 实名认证信息错误
+        ErrName = 4;            // 名字错误
+        ErrId   = 5;            // 身份证号错误
+    }
+    string  err_code    = 1;
+    string  err_msg     = 2;
+    int32   is_adult    = 3;
+    int32   user_age    = 4;
+    int32   verification= 5;
+}
+// 客户端上报实名信息
+message C_ReportReamNameInfo {
+    string sndaId           = 1;   //yoka数字id
+    string pgt              = 2;   //大票
+    int32  real_name_status = 3;   //0未实名，1已实名
+    bool   is_adult         = 4;   //
+    int32  user_age         = 5;   //
+    bool   third_fcm        = 6;   //是否由三方执行防沉迷
+    string serial_number    = 7;   //设备信息，1小时试玩使用
+	int32  verification     = 8;   //0:没过真实名校验 1:已过真实名校验 2:正在进行真实名校验
+}
+
+enum RenameType {
+    Invalid = 0;
+    // 使用改名卡
+    UseRenameCard = 1;
+    // 钻石改名
+    Buy = 2;
+}
+
+//改名
+message C_ReqRename {
+    RenameType type = 1;
+    string nick_name = 2;
+    // 使用改名卡时使用
+    gameconf.GoodsCategory category = 3;
+    int32 id = 4;
+    bytes uid = 5;
+}
+
+message S_RespRename {
+    enum ErrCode {
+        RenameSucc = 0;
+        ErrUnknow = 1;
+        // 参数错误
+        ErrParam = 2;
+        // 钻石不足
+        ErrNotEnoughDiamond = 3;
+        // 没有改名卡
+        ErrNoCard = 4;
+        // 名字已经存在
+        ErrNickNameExist = 5;
+        // 昵称不合法
+        ErrNickNameIllegal = 6;
+        ErrDiamondConsumeLimit = 7; // 钻石消耗过量
+        ErrBanRename = 8; // 禁止玩家修改
+		ErrNickNameExistInRobot = 9; // 名字已经存在在机器人中
+    }
+    ErrCode Result = 1;
+    RenameType type = 2;
+    string nick_name = 3;
+    gameconf.GoodsCategory category = 4;
+    int32 id = 5;
+    bytes uid = 6;
+}
+
+message C_ReqAntiIndulged {
+}
+// 防沉迷触发通知
+message S_NoticeAntiIndulged {
+    gamedef.IndulgedPunishType pubish  = 1; // 惩罚通知
+    int64                      ol_time = 2; // 在线时间(单位分钟)
+    int32                      max_expire  = 3; // 当天可在线总时长(单位分钟)
+    int64                      rmb_month = 4;   // 当前月充值金额
+    int64                      try_start = 5;   // 试玩开始时间
+}
+
+// 新手引导后改名(相当于创建角色)
+message C_ReqNewbieRename {
+    string nickname = 1;
+    gamedef.SexType sex = 2;
+}
+//
+message S_RespNewbieRename {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrExist = 2;
+        ErrIllegal = 3;
+        ErrNewbieStep = 4;
+        ErrBanRename = 5; //禁止玩家修改
+		ErrExistInRobot = 6;
+    }
+    ErrCode err_code = 1;
+}
+
+// 通知获得了周卡/月卡
+message S_NtfMonthCards {
+    gamedefv2.DBMonthCard month_cards = 1;
+}
+
+// 请求是否有周卡/月卡
+message C_ReqMonthCard {}
+message S_RespMonthCard {
+    enum ErrCode {
+        Succ       = 0;
+        ErrUnknown  = 1;
+        ErrNoUser  = 2;
+        ErrNoCard  = 3;
+    }
+    ErrCode err_code = 1;
+    string  err_msg  = 2;
+    gamedefv2.DBMonthCard month_cards = 3;
+}
+
+// 领取月卡今日福利
+message C_ReqMonthCardReward {
+}
+
+message S_RespMonthCardReward {
+    enum ErrCode {
+        Succ            = 0;
+        ErrUnknown      = 1;
+        ErrNoCard       = 2; //没有月卡
+        ErrAlreadyTaken = 3; //已经领取过奖励
+        ErrNoUser       = 4; //user没找到
+        ErrNoCfg        = 5; //没有配置
+    }
+    ErrCode                err_code      = 1;
+    string                 err_msg       = 2;
+    int64                  reward_time   = 3; //领取每日奖励的时间
+    repeated gamedef.Goods goodsList     = 4 [packed=false];
+}
+
+// 查看vip信息
+message C_ReqVIPInfo {
+}
+
+message S_RespVIPInfo {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknown = 1;
+        ErrUserData = 2;
+    }
+    ErrCode err_code = 1;
+    int32 VIP_level = 2;
+    repeated int32 rewarded_level = 3[packed=false];
+    int64 recharge = 4; // 一共充了多少钱rmb
+}
+
+// 领取福利
+message C_ReqTakeVIPReward {
+    int32 level = 1;
+}
+
+message S_RespTakeVIPReward {
+    int32 level = 1;
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknown = 1;
+        ErrVIPLevel = 2;
+        AlreadyTaken = 3;
+    }
+    ErrCode err_code = 2;
+    repeated gamedef.Goods reward = 3[packed=false];
+}
+
+// 通知VIP升级
+message S_NoticeVIPLevelUp {
+    int32 level = 1;
+    int64 recharge = 2; // 一共充了多少钱rmb
+}
+
+// 冒险模式数据
+message C_ReqAdventureData {
+}
+
+message S_RespAdventureData {
+    enum ErrCode {
+        Succ = 0;
+        NotFindUser = 1;
+        ErrUserData = 2;
+    }
+    ErrCode err_code = 1;
+    string  err_msg  = 2;
+    gamedef.DBAdventure data = 3;
+}
+
+// 上报玩家在pve地图中的位置
+message C_ReqReportAdventureTourPosition {
+    string tour_position = 1;
+}
+message S_RespReportAdventureTourPosition {
+    enum ErrCode {
+        Succ = 0;
+        NotFindUser = 1;
+        ErrUserData = 2;
+    }
+    ErrCode err_code      = 1;
+    string  err_msg       = 2;
+    string  tour_position = 3;
+}
+
+// 冒险模式关卡请求进入
+message C_ReqAdventureGameStart {
+    int32 mission_id = 1;
+}
+
+message S_RespAdventureGameStart {
+    int32 mission_id = 1;
+    enum ErrCode {
+        Succ = 0;
+        ErrUserData = 1;
+        Locked = 2;
+        InvalidCardGroup = 3;
+    }
+    ErrCode err_code = 2;
+}
+
+// 冒险模式奖励领取请求
+message C_ReqAdventureRewardTake {
+    int32 mission_id = 1;
+}
+
+message S_RespAdventureRewardTake {
+    int32 mission_id = 1;
+    enum ErrCode {
+        Succ = 0;
+        ErrUserData = 1;
+        Unfinished = 2;
+    }
+    ErrCode err_code = 2;
+    repeated gamedef.Goods goods = 3[packed=false];
+}
+
+// 冒险模式数据更新
+message S_NtfAdventureDataUpdate {
+    gamedef.DBAdventure data = 1;
+}
+
+// 查看定位信息
+message C_ReqMyLocation {
+}
+
+message S_RespMyLocation {
+    gamedef.LocationData location = 1;
+    int64 update_ts = 2; // 最近一次定位时间
+}
+
+// 定位服务
+message C_ReqUpdateLocation {
+    gamedef.LocationData location = 1;
+}
+
+message S_RespUpdateLocation {
+    enum ErrCode {
+        Succ = 0;
+        LocationIllegal = 1;
+        TooOften = 2;
+        Unknown = 3;
+    }
+    ErrCode err_code = 1;
+    int64 ts = 2;
+}
+
+// 请求区域排行榜
+message C_ReqRegionRank {
+    gamedef.RankLocationType type = 1;
+}
+
+message S_RespRegionRank {
+    enum ErrCode {
+         Succ = 0;
+         ErrUnknow = 1;
+    }
+    ErrCode err_code = 1;
+    string  err_msg = 2;
+    repeated gamedef.CGLadderUserSnap SnapInfos = 3[packed=false];
+    int32 self_rank = 4;
+    gamedef.RankLocationType type = 5;
+}
+
+// 通知人民币购买道具成功
+message S_NoticeRechargeBuyShopGoods {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnkown = 1;
+        ErrLimit = 2;
+        NotEnoughBuyRight = 3;
+    }
+    ErrCode result = 1;
+    uint32 GoodsID = 2;
+    int32 diamonds = 3;
+}
+
+// 测试协议使用
+message C_ReqTest {
+
+}
+
+message S_RespTest {
+
+}
+
+
+//请求签到的数据
+message C_ReqMonthAddUpSignData {
+
+}
+message S_RespMonthAddUpSignData {
+   enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        NotFindUser = 2;
+   }
+   ErrCode  err_code            = 1;
+   int32    signed_cnt          = 2;   // 已签到的次数
+   int32    replenish_sign_cnt  = 3;   // 已补签的次数
+   int64    last_free_sign_time = 4;   // 最后一次免费签到时间
+   int32    exchange_cnt        = 5;   // 已兑换的次数
+
+}
+
+//月累计签到
+message C_ReqMonthAddUpSign {
+    int32 day = 1;
+}
+message S_RespMonthAddUpSign {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow   = 1;
+        NotFindUser = 2;  //找不到玩家
+        HaveSigned  = 3;  //已签到
+        CanNotSign  = 4;  //非法签到日期
+        NoCfgGoods  = 5;  //没有配置道具
+        NoGoodsData = 6;  //没有道具数据结构
+        ErrAddGoods = 7;  //添加道具发生错误
+        ErrSubGoods = 8;  //扣减道具发生错误
+   }
+   ErrCode  err_code                = 1;
+   int32    day                     = 2;
+   int32    signed_cnt              = 3;   // 已签到的次数
+   int32    replenish_sign_cnt      = 4;   // 已补签的次数
+   int64    last_free_sign_time     = 5;   // 最后一次免费签到时间
+}
+
+// 签到兑换
+message C_ReqSignExchange {
+}
+
+message S_RespSignExchange {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow   = 1;
+        NotFindUser = 2;  //找不到玩家
+        NoCfgGoods  = 3;  //没有配置道具
+        NoGoodsData = 4;  //没有道具数据结构
+        ErrAddGoods = 5;  //添加道具发生错误
+        ErrSubGoods = 6;  //扣减道具发生错误
+        ErrOverCnt  = 7;  //超过兑换次数
+    }
+    ErrCode err_code = 1;
+    int32    exchange_cnt = 2;   // 已兑换的次数
+}
+
+//助理奖励
+message C_ReqAssistReward {
+    int32 v = 1;     //领取奖励的助理值
+}
+message S_RespAssistReward {
+    enum ErrCode {
+        Succ                    = 0;
+        ErrUnknow               = 1;
+        ErrRewarded             = 2;    //已奖励
+        ErrNoRewardCfg          = 3;    //无相应配置
+        ErrAddGoods             = 4;    //加道具失败
+        ErrNotAchieveValue      = 5;    //没有达到助力值
+    }
+
+    int32   v        = 1;  //
+    ErrCode err_code = 2;
+    string  err_msg  = 3;
+}
+//请求助理奖励数据
+message C_ReqAssistRewardData {
+}
+message S_RespAssistRewardData {
+    repeated int32 rewarded_value = 1 [packed=false];
+}
+
+//校验文本是否合法
+message C_ReqCheckTextLegal{
+    string text = 1;
+}
+
+message S_RespCheckTextLegal{
+    string src_text = 1;
+    string dst_text = 2;
+}
+
+//请求成就
+message C_ReqAchievePoint {
+}
+message S_RespAchievePoint {
+    int64   collect = 1;        // 当前点数
+    int64   train = 2;
+    int64   fight = 3;
+    int64   all_reward = 4;     // 目标点数
+    int64   collect_reward = 5;
+    int64   train_reward = 6;
+    int64   fight_reward = 7;
+    repeated int32  show_medals = 8 [packed=false]; // 成就奖章道具id
+}
+message S_NtfAchievePoint {
+    gamedef.AchievePointType    typ     = 1;
+    int64                       point   = 2;
+}
+message C_ReqAchieveReward {
+    gamedef.AchievePointType  typ = 1;
+}
+message S_RespAchieveReward {
+    enum ErrCode {
+        Succ        = 0;
+        ErrUnknow   = 1;
+        ErrIsTaked  = 2; //已经领取过
+        ErrNotReach = 3; //未达到
+    }
+    ErrCode                     err_code    = 1;
+    gamedef.AchievePointType    typ         = 2;
+    int64                       reward_pt   = 3;
+    int64                       next_pt     = 4;
+}
+
+//展示成就
+message C_ReqAddShowAchieveMedal {
+    int32   goods_id = 1;   //要展示的成就的道具id(Category = 26)
+}
+message S_RespAddShowAchieveMedal {
+    enum ErrCode {
+         Succ         = 0;
+         ErrUnknown   = 1;
+         ErrNoGoodsId = 2;
+         ErrNotHave   = 3; //未拥有
+         ErrMaxCnt    = 4; //展示上限
+    }
+    ErrCode         err_code        = 1;
+    string          err_msg         = 2;
+    int32           goods_id        = 3;
+    repeated int32  show_medals     = 4 [packed=false]; // 成就奖章道具id
+}
+//取消展示成就
+message C_ReqRemoveShowAchieveMedal {
+    int32  goods_id = 1;
+}
+message S_RespRemoveShowAchieveMedal {
+    enum ErrCode {
+         Succ         = 0;
+         ErrUnknown   = 1;
+         ErrNoGoodsId = 2;
+         ErrNotHave   = 3; //未拥有
+         ErrNotShowed = 4; //未展示
+    }
+    ErrCode         err_code        = 1;
+    string          err_msg         = 2;
+    int32           goods_id        = 3;
+    repeated int32  show_medals     = 4 [packed=false]; // 成就奖章道具id
+}
+
+// 巅峰卡组
+message C_ReqTopCG {
+    int64 version = 1;  //版本号
+}
+message S_RespTopCG {
+    int64 version = 1;  //版本号
+    repeated gamedefv2.CardGroupInfo cglist = 2 [packed=false]; //卡组列表
+}
+
+// 推荐卡组
+message C_ReqRecmmondCG {
+    int64 version = 1;  //版本号
+    gameconf.LadderLevelType ladderLvType = 2; //天梯段位类型
+    gameconf.EthnicType Ethnic  = 3; // 种族
+}
+
+message S_RespRecmmondCG {
+    int64 version = 1;  //版本号
+    gameconf.LadderLevelType ladderLvType = 2; //天梯段位类型
+    gameconf.EthnicType ethnic  = 3; // 种族
+    repeated gamedefv2.CardIDs cglist = 4 [packed=false]; //卡组列表
+}
+
+// 推荐卡组
+message C_ReqRecCG {
+    int64 version                           = 1; //版本号
+    uint32 startIndex                       = 2; //默认0号开始
+    int32 ladderLvType                      = 3; //天梯段位类型
+    gameconf.EthnicType ethnic              = 4; //种族
+    gamedef.CGSortType sortType             = 5; //排序方式
+}
+message S_RespRecCG {
+    int64 version                           = 1; //版本号
+    uint32 startIndex                       = 2; //默认0号开始
+    int32 ladderLvType                      = 3; //天梯段位类型
+    gameconf.EthnicType ethnic              = 4; //种族
+    gamedef.CGSortType sortType             = 5; //排序方式
+    repeated gamedef.CardGroupUnit cglist   = 6[packed=false]; //卡组列表
+}
+
+// 同战卡
+message C_ReqRecCard {
+    int32 card_id = 1;  //卡牌id
+}
+
+message S_RespRecCard {
+    int32 card_id = 1;  //卡牌id
+    repeated int32 card_list = 2[packed=false]; //卡牌列表
+}
+
+// 热门卡组
+message C_ReqHotCG {
+    int64 version               = 1; //版本号
+    uint32 startIndex           = 2; //默认0号开始
+    gameconf.EthnicType ethnic  = 3; //种族
+    repeated int32 taglist      = 4[packed=false]; //标签
+    gamedef.CGSortType sortType = 5; //排序方式
+}
+message S_RespHotCG {
+    int64 version               = 1; //版本号
+    uint32 startIndex           = 2; //默认0号开始
+    gameconf.EthnicType ethnic  = 3; //种族
+    repeated int32 taglist      = 4[packed=false]; //标签
+    gamedef.CGSortType sortType = 5; //排序方式
+    repeated gamedef.CardGroupUnit cglist = 6[packed=false]; //卡组列表
+}
+
+// 点赞热门卡组
+message C_ReqUpvoteCG {
+    string code = 1;  //用户卡组编码
+}
+message S_RespUpvoteCG {
+    string code = 1;  //用户卡组编码
+    uint32 new_upvote_num = 2; //最新点赞数
+    bool is_upvote = 3;  //点赞:true, 取消赞:false
+}
+
+// 查询自己点赞过的用户卡组编码
+message C_ReqGetMyUpvoteCG {
+}
+message S_RespGetMyUpvoteCG {
+    repeated string code_list = 1[packed=false];  //用户卡组编码列表 （点过赞的）
+}
+
+// 查询给定卡组的点赞数量
+message C_ReqQueryCGUpvoteNum {
+    repeated string code_list = 1[packed=false];  //用户卡组编码列表
+}
+message S_RespQueryCGUpvoteNum {
+    repeated string code_list = 1[packed=false];  //用户卡组编码列表
+    repeated uint32 upvote_num_list = 2[packed=false];  //用户卡组点赞数量列表
+}
+
+// 上传热门卡组
+message C_ReqUploadHotCG {
+    string name                 = 1; //名称
+    string desc                 = 2; //描述
+    int32 group_id              = 3; //卡组id
+    repeated int32 taglist      = 4[packed=false]; //标签
+}
+message S_RespUploadHotCG {
+    enum ErrCode {
+        Success             = 0;
+        ErrUserData         = 1;  //获取玩家数据错误
+        ErrNameLen          = 2;  //卡组名长度非法
+        ErrDescLen          = 3;  //卡组描述长度非法
+        ErrEthnic           = 4;  //卡组势力非法
+        ErrTag              = 5;  //卡组标签非法
+        ErrOverLimit        = 6;  //卡组数超过上限
+        ErrOverGobalLimit   = 7;  //卡组数超过全局上限
+        ErrAlreadyUpload    = 8;  //卡组已上传
+    }
+    ErrCode err_code  = 1;
+}
+
+// 我的上传
+message C_ReqMyUploadCG {
+}
+message S_RespMyUploadCG {
+    enum ErrCode {
+        Success             = 0;
+        ErrUserData         = 1;  //获取玩家数据错误
+    }
+    ErrCode err_code  = 1;
+    repeated gamedef.CardGroupUnit cglist = 2[packed=false]; //卡组列表
+}
+
+// 自动组牌各牌加权排序
+message C_ReqRecdSortedCard {
+    int64 version = 1;  //版本号
+    gameconf.LadderLevelType ladderLvType = 2; //天梯段位类型
+    gameconf.EthnicType ethnic  = 3; // 种族
+}
+message S_RespRecdSortedCard {
+    int64 version = 1;  //版本号
+    gameconf.LadderLevelType ladderLvType = 2; //天梯段位类型
+    gameconf.EthnicType ethnic  = 3; // 种族
+    repeated int32 sort_cardids = 4 [packed=false]; //权重排序好的牌列表（由高到低）
+}
+
+// 静态推荐卡组
+message C_ReqStaticRecCG {
+    repeated int32 cg_id_list = 1[packed=false]; //卡组编码列表
+}
+message S_RespStaticRecCG {
+    repeated gamedef.StaticCardGroupInfo cg_info_list = 1[packed=false]; //卡组列表
+}
+
+// 点赞静态推荐卡组
+message C_ReqUpvoteStaticCG {
+    int32 cg_id = 1;  //用户卡组id
+}
+message S_RespUpvoteStaticCG {
+    enum ErrCode {
+        Success             = 0;
+        ErrAlreadyVoteToday = 1;  //已投票
+        ErrCGIdNoCfg        = 2;  //卡组id不存在
+    }
+    ErrCode err_code        = 1;
+    int32 cg_id             = 2; //用户卡组id
+    uint32 new_upvote_num   = 3; //最新点赞数
+}
+
+// 查询自己点赞过的静态推荐卡组ID
+message C_ReqGetMyUpvoteStaticCG {
+}
+message S_RespGetMyUpvoteStaticCG {
+    repeated int32 code_id_list = 1[packed=false];  //用户卡组id列表 （点过赞的）
+}
+
+//红点通知
+message C_ReqRedPoints {
+}
+message S_RespRedPoints {
+    enum RedType {
+        Red_Invalid                 = 0;
+        Red_AchieveCollect          = 1;    //成就红点
+        Red_AchieveTrain            = 2;    //成就红点
+        Red_AchieveFight            = 3;    //成就红点
+        Red_FirstRecharge           = 4;    //首冲任务红点
+        //Red_Medal                 = 5;    //勋章红点
+        Red_ActivityTask            = 10;   //活动任务红点(作废20200623)
+        Red_LadderTask              = 11;   //排位任务红点
+        Red_ContSign                = 12;   //连续签到红点
+        Red_ActivityLadderLv        = 13;   //活动天梯冲段红点
+        Red_ActivityTask7Day        = 14;   //活动七日狂欢
+        Red_WolfKingWeekTask        = 15;   //狼王令红点
+        Red_MonthCard               = 16;   //月卡
+        Red_RebateActivityParentTask= 17;   //充值返利任务红点
+        Red_RebateActivityTask      = 18;   //充值返利任务红点
+        Red_EveryDayMedal           = 19;   //勋章每日
+        Red_Fresher                 = 21;   //曙光任务
+        Red_FresherParent           = 22;   //曙光母任务
+        Red_MultiProc               = 23;   //里程碑任务
+    }
+    message RedPoint {
+        RedType typ   = 1;
+        int32   count = 2;
+    }
+    repeated RedPoint redPoints = 1 [packed=false];
+}
+
+message C_ReqServerTime {
+}
+
+message S_RespServerTime {
+    int64 server_time = 1;
+}
+
+//势力数据请求
+message C_ReqEthnicLvsData {
+}
+message S_RespEthnicLvsData {
+    repeated gamedef.EthnicLvData data = 1 [packed=false];
+	int32               day_add_exp = 2; //当天所有势力增加经验总值
+}
+//势力升级
+message S_NtfEthnicExpLvUp {
+    gameconf.EthnicType ethnic  = 1;
+    int32               exp     = 2;
+    int32               lv      = 3;
+	int32               day_add_exp = 4; //当天所有势力增加经验总值
+}
+//势力升级领奖
+message C_ReqEthnicLvReward {
+    gameconf.EthnicType ethnic = 1;
+    int32               level  = 2;
+}
+message S_RespEthnicLvReward {
+    enum ErrCode {
+        Success             = 0;
+        ErrUserData         = 1;  //获取玩家势力等级数据错误
+        ErrEthnic           = 2;  //势力类型数据错误
+        ErrLevel            = 3;  //请求等级错误
+        ErrRewarded         = 4;  //已经领奖
+        ErrNoRewardGoods    = 5;  //无奖励道具数据
+        ErrUserGoods        = 6;  //玩家道具数据错误
+        ErrAddGoods         = 7;  //加道具失败
+    }
+    ErrCode err_code            = 1;
+    string  err_msg             = 2;
+    gameconf.EthnicType ethnic  = 3;
+    int32               level   = 4;
+}
+
+//举报功能--------------------
+
+//举报玩家请求
+message C_ReqReportPlayer {
+    enum ReportType {
+        Unknow              = 0;
+        Timeout             = 1; //烧条
+        Cheat               = 2; //外挂
+    }
+    string game_uid         = 1; //游戏id
+    uint64 be_reported_id   = 2; //被举报者id
+    uint64 video_id         = 3; //录像id
+    sint32 game_mode        = 4; //游戏模式
+    ReportType report_type  = 5; //举报类型
+    bool ask_lost           = 6; //触发挂机判败
+}
+
+//举报玩家回复
+message S_RespReportPlayer {
+    enum ErrCode {
+        Success             = 0;
+        ErrUnknown          = 1;
+        ErrNoTimes          = 2; //次数用完
+        ErrNotEnable        = 3; //举报功能未开启
+    }
+    ErrCode err_code        = 1;
+    string err_msg          = 2;
+    sint32 can_report_cnt   = 3;        //可用举报次数
+}
+
+//烧条通知
+message S_TimeoutNotification {
+    string msg      = 1;
+    bool is_cycle   = 2;    //是否循环播放
+}
+
+//同步烧条数据
+message S_NoticeActionTimeout {
+    uint64 user_id      = 1; //玩家id
+    sint32 timeout_cnt  = 2; //烧条次数
+    bool is_novice = 3; //是否新手
+}
+
+//请求举报数据
+message C_ReqReportData {
+
+}
+
+message S_RespReportData {
+    enum ErrCode {
+        Success             = 0;
+        ErrUnknown          = 1;
+    }
+    ErrCode err_code        = 1;
+    string err_msg          = 2;
+    S_NoticeReportPunishData report_data = 3;
+}
+
+//举报处罚数据
+message S_NoticeReportPunishData {
+    enum PunishType {
+        punish_invalid         = 0;
+        punish_forbid_match    = 4; //禁止匹配
+        punish_ban_account     = 5; //封停账号
+    }
+    message PunishData {
+        PunishType punish_type      = 1;
+        repeated sint32 parameter1  = 2 [packed=false];
+        sint32 parameter2           = 3;
+        sint32 parameter3           = 4;
+        int64 begin_time            = 5; //开始时间
+    }
+
+    sint32 can_report_cnt           = 1; //可举报次数
+    string report_game_uid          = 2; //举报所在的游戏id
+    bool is_enable_report           = 3; //是否开启举报功能
+    repeated PunishData punish_data = 4 [packed=false];
+}
+
+//世界聊天举报/卡牌评论举报
+message C_ReqExtraReportPlayer {
+    enum ReportType {
+        report_invalid      = 0;
+        report_world_chat   = 1; //世界聊天举报
+        report_card_comment = 2; //卡牌评论举报
+    }
+
+    uint64 be_reported_id   = 1; //被举报者id
+    ReportType report_type  = 2; //举报类型
+    string report_comment   = 3; //举报内容
+    //卡牌评论关系信息
+    int32 topicid           = 4; //卡牌id
+    int32 comment_id        = 5; //卡牌评论索引id
+}
+
+message S_RespExtraReportPlayer {
+    enum ErrCode {
+        Success             = 0;
+        ErrUnknown          = 1;
+    }
+    ErrCode err_code        = 1;
+    string err_msg          = 2;
+}
+
+//观战
+message C_ReqRoomList {
+    gameconf.RoomModeType room_type = 1;
+    int32 fetch_cnt = 2;            //请求次数
+    int64 latest_create_time = 3;   //房间创建时间
+}
+
+message S_RespRoomList {
+    enum ErrCode {
+        Success             = 0;
+        Empty               = 1;    //空的
+        NoMore              = 2;    //没有了
+        ErrUnknown          = 3;
+    }
+
+    message UserData {
+        string Nickname     = 1;         //昵称
+        string Avatar       = 2;         //头像
+        int32 Avatar_border = 3;         //头像框
+        gameconf.EthnicType ethnic = 4;  //势力
+        int32 ladder_level  = 5;         //段位等级
+    }
+
+    message Room {
+        UserData seat1 = 1;
+        UserData seat2 = 2;
+        int32 room_id = 3;
+    }
+
+    ErrCode err_code        = 1;
+    string err_msg          = 2;
+    repeated Room room_list = 3 [packed=false];
+    int32 fetch_cnt         = 4;    //请求次数
+    int64 latest_create_time = 5;   //房间创建时间
+    gameconf.RoomModeType room_type = 6;
+}
+
+//录像消息元数据，包裹真实消息体
+message RecordMetadata {
+    int32 delay     = 1;    //顺延
+    uint32 msg_id   = 2;    //消息id
+    bytes msg_body  = 3;    //消息体
+}
+
+// 请求历练数据
+message C_ReqStrengthenTrainingData {
+}
+message S_RespStrengthenTrainingData {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    ErrCode err_code = 1;
+    string  err_msg = 2;
+    repeated int32 finishedRounds = 3[packed=false];
+}
+
+// 进度条类型奖励
+message C_ReqBarTypeReward {
+    gameconf.BarRewardTyp type = 1;
+    int32                 id   = 2;
+}
+message S_RespBarTypeReward {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnkonw       = 1;    //
+        ErrUserData     = 2;    //玩家数据错误
+        ErrCfg          = 3;    //配置错误
+        ErrRewarded     = 4;    //已领取
+        ErrCantReward   = 5;    //条件不满足
+        ErrAddGoods     = 6;    //加道具失败
+    }
+    ErrCode               err_code = 1;
+    string                err_msg  = 2;
+    gameconf.BarRewardTyp type     = 3;
+    int32                 id       = 4;
+}
+// 请求进度条奖励数据
+message C_ReqBarRewardData {
+}
+message S_RespBarRewardData {
+    message BRRewarded {
+        gameconf.BarRewardTyp type = 1;
+        repeated int32        id   = 2[packed=false];
+    }
+    repeated BRRewarded rewarded_ids = 1[packed=false];
+}
+
+// 获取狼王令信息
+message C_ReqWolfKingMedalInfo {
+}
+
+message S_RespWolfKingMedalInfo {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknown   = 1;
+    }
+    ErrCode err_code = 1;
+}
+
+// 领狼王令等级奖励
+message C_ReqPickWolfKingMedalLvReward {
+    int32 medal_lv = 1; // 狼王令等级
+    bool is_advance = 2; // 是否是领进阶的奖品
+}
+
+message S_RespPickWolfKingMedalLvReward {
+    enum ErrCode {
+        Succ                = 0;
+        ErrUnknown          = 1;
+        ErrGetUserInfo      = 2; // 获取玩家信息失败
+        ErrNoCfg            = 3; // 没有配置
+        ErrGetGoodsInfo     = 4; // 获取玩家道具信息失败
+        ErrAddItem          = 5; // 添加道具失败
+        ErrNotFitCond       = 6; // 不满足条件
+        ErrAlreadyGetAward  = 7; // 奖励已领取
+    }
+    ErrCode err_code = 1;
+}
+
+// 领取狼王令一键领奖
+message C_ReqPickWolfKingMedalUnpickedLvRwd {
+    int32 start_lv = 1; //从该等级开始领 (包括该等级）
+}
+
+message S_RespPickWolfKingMedalUnpickedLvRwd {
+    enum ErrCode {
+        Succ                = 0;
+        ErrUnknown          = 1;
+        ErrGetUserInfo      = 2; // 获取玩家信息失败
+        ErrNoCfg            = 3; // 没有配置
+        ErrGetGoodsInfo     = 4; // 获取玩家道具信息失败
+        ErrAddItem          = 5; // 添加道具失败
+        ErrNotFitCond       = 6; // 不满足条件
+        ErrNoNewReward      = 7; // 没有新奖励
+    }
+    ErrCode err_code = 1;
+}
+
+// 领狼王令周任务奖励
+message C_ReqPickWolfKingMedalWeekReward {
+}
+
+message S_RespPickWolfKingMedalWeekReward {
+    enum ErrCode {
+        Succ                = 0;
+        ErrUnknown          = 1;
+        ErrGetUserInfo      = 2; // 获取玩家信息失败
+        ErrNoCfg            = 3; // 没有配置
+        ErrGetGoodsInfo     = 4; // 获取玩家道具信息失败
+        ErrAddItem          = 5; // 添加道具失败
+        ErrNotFitCond       = 6; // 不满足条件
+        ErrAlreadyGetAward  = 7; // 奖励已领取
+    }
+    ErrCode err_code = 1;
+}
+
+// 进阶狼王令
+message C_ReqUpgradekWolfKingMedal {
+    enum UpgradeType {
+        Normal       = 0; // 普通
+        More         = 1; // 特惠
+    }
+    int32 act_id = 1;   // 活动id
+    UpgradeType utype = 2; // 进阶类型
+}
+
+message S_RespUpgradekWolfKingMedal {
+    enum ErrCode {
+        Succ                = 0;
+        ErrUnknown          = 1;
+        ErrGetUserInfo      = 2; // 获取玩家信息失败
+        ErrNotSameActId     = 3; // 活动id不一致
+        ErrAlreadyUpgrade   = 4; // 已进阶
+        ErrNoCfg            = 5; // 没有配置
+        ErrGetGoodsInfo     = 6; // 获取玩家道具信息失败
+        ErrSubGood          = 7; // 扣减道具失败
+    }
+    ErrCode err_code = 1;
+}
+
+// 升级狼王令
+message C_ReqAddWolfKingMedalLv {
+    int32 act_id = 1;   // 活动id
+    int32 add_lv = 2;   // 提升等级
+}
+
+message S_RespAddWolfKingMedalLv {
+    enum ErrCode {
+        Succ                = 0;
+        ErrUnknown          = 1;
+        ErrGetUserInfo      = 2; // 获取玩家信息失败
+        ErrNotSameActId     = 3; // 活动id不一致
+        ErrNotUpgrade       = 4; // 未进阶
+        ErrNoCfg            = 5; // 没有配置
+        ErrGetGoodsInfo     = 6; // 获取玩家道具信息失败
+        ErrSubGood          = 7; // 扣减道具失败
+        ErrUnableToFullLv   = 8; // 不能升到满级等级
+    }
+    ErrCode err_code = 1;
+}
+
+message S_NtfWolfKingMedal {
+    gamedef.DBWolfKingMedal medal_info = 1;
+}
+
+//==========福利============
+message S_NtfContSignData {
+    message RewardData {
+        sint32 days = 1;    //连续签到天数
+        bool had_take = 2;  //是否已领奖
+    }
+
+    int32 cont_days = 1; //连续签到天数
+    int64 latest_sign_time = 2; //最近一次签到时间
+    repeated RewardData reward_data = 3[packed=false]; //领奖信息
+    bool is_toke_all_reward = 4; //是否已领取所有奖励
+    int64 finish_time = 5; //完成时间(已领取所有奖励)
+}
+
+message C_ReqContSign {
+}
+
+message S_RespContSign {
+    enum ErrCode {
+        Success         = 0;    //成功
+        ErrUnknown      = 1;
+        ErrSigned       = 2;    //已签到
+        ErrClosed       = 3;    //福利已关闭
+    }
+
+    ErrCode err_code = 1;
+    int32   draw_coin= 2;   //绘画奖励金币
+}
+
+message C_ReqContSignTakeReward {
+    int32 days = 1;     //领取的天数
+}
+
+message S_RespContSignTakeReward {
+    enum ErrCode {
+        Success         = 0;    //成功
+        ErrUnknown      = 1;
+        ErrHadToke      = 2;    //已领取
+        ErrNotCompleted = 3;    //未完成
+    }
+
+    ErrCode err_code = 1;
+    int32 take_days = 2; //领取哪一天的奖励
+}
+// 领取7日福利奖励
+message C_ReqPickLoginReward {
+    int32 day = 1;              // 天数
+    int32 reward_index = 2;     // 奖励索引
+}
+message S_RespPickLoginReward {
+    enum ErrCode {
+        Succ                = 0;
+        ErrUnknown          = 1;
+        ErrGetUserInfo      = 2; // 获取玩家信息失败
+        ErrNoCfg            = 3; // 没有配置
+        ErrGetGoodsInfo     = 4; // 获取玩家道具信息失败
+        ErrAddItem          = 5; // 添加道具失败
+        ErrNotFitCond       = 6; // 不满足条件
+        ErrAlreadyGetAward  = 7; // 奖励已领取
+    }
+    ErrCode err_code = 1;
+}
+message S_NtfLoginWelfare { // 新人七日福利数据
+    gamedef.DBTotalLoginWelfare login_welf = 1;
+}
+
+// 领取PC七日福利奖励
+message C_ReqPickLoginRewardPC {
+    int32 day = 1;              // 天数
+}
+message S_RespPickLoginRewardPC {
+    enum ErrCode {
+        Succ                = 0;
+        ErrUnknown          = 1;
+        ErrGetUserInfo      = 2; // 获取玩家信息失败
+        ErrNoCfg            = 3; // 没有配置
+        ErrGetGoodsInfo     = 4; // 获取玩家道具信息失败
+        ErrAddItem          = 5; // 添加道具失败
+        ErrNotFitCond       = 6; // 不满足条件
+        ErrAlreadyGetAward  = 7; // 奖励已领取
+        ErrNotWin3DClient   = 8; // 非PC3d版
+    }
+    ErrCode err_code = 1;
+}
+message S_NtfLoginWelfarePC { // 新人七日福利数据
+    gamedef.DBTotalLoginWelfarePC login_welf = 1;
+}
+
+//直播弹幕
+message C_ReqSendDanmaku {
+    string danmaku = 1;
+}
+
+message S_RespSendDanmaku {
+    enum ErrCode {
+        Succ                = 0;
+        ErrUnknown          = 1;
+    }
+    ErrCode err_code = 1;
+}
+
+message S_NtfLiveDanmaku {
+    message Danmaku {
+        uint64 user_id = 1;
+        string danmaku = 2;
+    }
+    repeated Danmaku danmaku_list = 1 [packed=false];
+}
+
+// 获取用户官方赛事信息
+message C_ReqCompeteInfo {
+}
+message S_RespCompeteInfo {
+    enum ErrCode {
+        Succ                = 0;
+        ErrUnknown          = 1;
+        ErrGetUserInfo      = 2; // 获取玩家信息失败
+    }
+    ErrCode err_code = 1;
+}
+// 加入官方赛事
+message C_ReqCompeteJoin {
+    int32 mid = 1;              // 模式id
+}
+message S_RespCompeteJoin {
+    enum ErrCode {
+        Succ                = 0;
+        ErrUnknown          = 1;
+        ErrGetUserInfo      = 2; // 获取玩家信息失败
+        ErrNoCfg            = 3; // 没有配置
+        ErrAlreadyJoin      = 4; // 已经加入
+        ErrUseItem          = 5; // 添加道具失败
+        ErrNotFitCond       = 6; // 不满足条件
+        ErrInValidPeriod    = 7; // 不在活动期
+        ErrRepeated         = 8; // 频繁操作
+        ErrLadderLevel      = 9; // 天梯段位不够
+    }
+    ErrCode err_code = 1;
+    int32 mid = 2;              // 模式id
+}
+// 升级官方赛事奖励
+message C_ReqCompeteUpgrade {
+    int32 mid = 1;              // 模式id
+}
+message S_RespCompeteUpgrade {
+    enum ErrCode {
+        Succ                = 0;
+        ErrUnknown          = 1;
+        ErrGetUserInfo      = 2; // 获取玩家信息失败
+        ErrNoCfg            = 3; // 没有配置
+        ErrAlreadyUpgrade   = 4; // 已经升过级
+        ErrUseItem          = 5; // 添加道具失败
+        ErrNotFitCond       = 6; // 不满足条件
+        ErrInValidPeriod    = 7; // 不在活动期
+        ErrRepeated         = 8; // 频繁操作
+    }
+    ErrCode err_code = 1;
+    int32 mid = 2;              // 模式id
+}
+
+// 领取官方赛事奖励
+message C_ReqCompeteReward {
+    int32 mid = 1;              // 模式id
+    uint32 win_num = 2;          // 对应胜场
+    bool is_ex = 3;             // 是否为额外奖
+}
+message S_RespCompeteReward {
+    enum ErrCode {
+        Succ                = 0;
+        ErrUnknown          = 1;
+        ErrGetUserInfo      = 2; // 获取玩家信息失败
+        ErrNoCfg            = 3; // 没有配置
+        ErrGetGoodsInfo     = 4; // 获取玩家道具信息失败
+        ErrAddItem          = 5; // 添加道具失败
+        ErrNotFitCond       = 6; // 不满足条件
+        ErrAlreadyGetAward  = 7; // 奖励已领取
+        ErrInValidPeriod    = 8; // 不在活动期
+        ErrNotAdvance       = 9; // 未进阶
+        ErrRepeated         = 10;// 频繁操作
+    }
+    ErrCode err_code = 1;
+    int32 mid = 2;              // 模式id
+    uint32 win_num = 3;          // 对应胜场
+    bool is_ex = 4;             // 是否为额外奖
+}
+
+// 领取官方赛事奖励
+message C_ReqCompeteRank {
+    int64 version = 1;
+    uint32 start_index = 2; //默认0号开始
+    bool client_has_cach = 3;  // 是否客户端有缓存
+}
+message S_RespCompeteRank {
+    enum ErrCode {
+        Succ                = 0;
+        ErrUnknown          = 1;
+        ErrGetUserInfo      = 2; // 获取玩家信息失败
+    }
+    ErrCode err_code = 1;
+    int64 version = 2;
+    uint32 start_index = 3;
+    repeated gamedef.UserCompeteInfo rankList = 4 [packed=false];
+    uint32 my_rank = 5; // 无名次默认0
+}
+
+message S_NtfCompeteInfo { // 单用户官方赛事数据
+    gamedef.UserCompeteInfo competeInfo = 1;
+}
+
+message S_NtfCompeteStatus { // 官方赛事状态
+    bool is_rewarded = 1;    // 是否已结算
+}
+
+// 获取用户狂欢战略联盟信息
+message C_ReqCarnivalLeagueInfo {
+}
+message S_RespCarnivalLeagueInfo {
+    enum ErrCode {
+        Succ                = 0;
+        ErrUnknown          = 1;
+        ErrGetUserInfo      = 2; // 获取玩家信息失败
+    }
+    ErrCode err_code = 1;
+    gameconf.EthnicType  now_ethnic = 2; //正在使用的势力
+    bool  is_ethnic_visible = 3; //使用中的势力是否可见
+}
+
+message C_ReqCarnivalLeagueSeeEthnic {
+}
+message S_RespCarnivalLeagueSeeEthnic {
+    enum ErrCode {
+        Succ                = 0;
+        ErrGetUserInfo      = 1; // 获取玩家信息失败
+    }
+    ErrCode err_code = 1;
+}
+
+//故事首次阅读奖励
+//领取奖励
+message C_ReqTakeCardStoryReward {
+    int32 story_id = 1;
+}
+
+message S_RespTakeCardStoryReward {
+    enum ErrCode {
+        Succ            = 0;
+        ErrUnknown      = 1;
+        ErrNoConfig     = 2; //配置不存在
+        ErrUserData     = 3; //获取玩家出错
+        ErrAddGoods     = 4; //添加奖励出错
+        ErrHadTook      = 5; // 已领取
+    }
+
+    ErrCode err_code = 1;
+    int32 took_story_id = 2;
+}
+
+//获取已领取奖励id
+message C_ReqCardStoryRewardTookList {
+
+}
+
+message S_RespCardStoryRewardTookList {
+    enum ErrCode {
+        Succ            = 0;
+        ErrUnknown      = 1;
+        ErrUserData     = 2; //获取玩家出错
+    }
+
+    ErrCode err_code = 1;
+    repeated int32 took_ids = 2[packed=false];
+}
+
+//兑换商城
+message C_ReqActivityExchangeGoods {
+    int32 activity_id = 1;  //活动id
+    int32 exchange_id = 2;  //兑换id
+}
+
+message S_RespActivityExchangeGoods {
+    enum ErrCode {
+        Succ            = 0;
+        ErrUnknown      = 1;
+        ErrUserData     = 2; //获取玩家出错
+        ErrNoActivity   = 3; //活动id不存在
+        ErrNoExchange   = 4; //兑换id不存在
+        ErrNoEnough     = 5; //消耗物品不足
+        ErrUseGoods     = 6; //消耗物品出错
+        ErrAddGoods     = 7; //添加物品出错
+        ErrExchangeEnd  = 8; //兑换结束
+        ErrExchangeLimit = 9; //已达兑换次数上限
+    }
+
+    ErrCode err_code = 1;
+    int32 activity_id = 2;  //活动id
+    int32 exchange_id = 3;  //兑换id
+    int32 exchange_cnt = 4; //已兑换次数
+}
+
+//请求兑换数据
+message C_ReqActivityExchangeData {
+    int32 activity_id = 1;
+}
+
+message S_RespActivityExchangeData {
+    enum ErrCode {
+        Succ            = 0;
+        ErrUnknown      = 1;
+        ErrUserData     = 2; //获取玩家出错
+    }
+
+    ErrCode err_code = 1;
+    int32 activity_id = 2;
+    repeated gamedef.ActivityExchangeInfo exchange_data = 3 [packed=false];
+}
+
+//客户端收集埋点日志
+message C_ReportEventTracking {
+    enum Event {
+        Unknown = 0;
+        Currency = 1; //货币信息
+    }
+
+    Event event = 1;
+    string tracking_data = 2;       //json 格式
+}
+
+message C_ReqActivityTask {
+    int32 act_id = 1; //活动id
+    gameconf.ActivityType typ = 2; //子项类型
+}
+message S_RespActivityTask {
+    enum ErrCode {
+        Succ            = 0;
+        ErrUnknown      = 1;
+        ErrUserData     = 2; //获取玩家出错
+        ErrNoTaskData   = 3;
+        ErrNoActivity   = 4; //活动id不存在
+    }
+    ErrCode err_code = 1;
+    int32 act_id = 2; //活动id
+    gameconf.ActivityType typ = 3; //子项类型
+    repeated gamedef.TaskDoing task_list = 4 [packed=false];
+}
+
+message C_ReqAppraiseData {
+}
+message S_RespAppraiseData {
+    enum ErrCode {
+        Succ                = 0;
+        ErrUserData         = 1; //获取玩家出错
+        ErrUserLoginData    = 2; //获取玩家登录数据出错
+        ErrUserLadderData   = 3; //获取玩家天梯数据出错
+    }
+    ErrCode err_code = 1;
+    int32 total_login = 2; // 累计登录天数
+    bool is_last_ladder_win = 3; // 最近一场是否胜利
+    int32 recent_win_rate = 4; // 最近n场的胜率
+}
+
+message C_ReqAppraiseReward {
+}
+message S_RespAppraiseReward {
+    enum ErrCode {
+        Succ                = 0;
+        ErrUserData         = 1; //获取玩家出错
+        ErrAlreadyGet       = 2; //已领过
+    }
+    ErrCode err_code = 1;
+}
+
+//返利
+message C_ReqUserRebateInfo {
+}
+message S_RespUserRebateInfo {
+    message TopUpData {
+        gameconf.GameTestPeriod period = 1;
+        int64                   rmb    = 2;
+    }
+    repeated TopUpData      top_up                      = 1 [packed=false];
+    gameconf.GameTestPeriod rebate_task_finished_period = 2;
+}
+
+//上报玩家进入某个界面
+message C_ReportEnterInterface {
+    enum Interface {
+        Unknown = 0;
+        WolfKing = 1; //狼王令界面
+    }
+
+    Interface iface = 1;
+}
+
+//rmb购买道具，客户端请求订单前检查购买条件
+message C_ReqCheckRmbBuyShopGoods {
+    string product_id = 1;
+    bool   third_fcm  = 2;   //是否由三方执行防沉迷
+}
+//rmb购买道具，客户端请求订单前检查购买条件
+message S_RespCheckRmbBuyShopGoods {
+    int32   err_code  = 1;  //BuyShopGoodsErrCode
+    string  err_msg   = 2;
+    string product_id = 3;
+    int64   ban_sec   = 4; //禁止玩家购买时间 BGErrBanUserShop
+}
+
+//绑定内测及返利账号发奖
+message C_ReqBindABTestAccount {
+    string  snda_id     = 1;    //
+    string  ticket      = 2;
+    int32   login_type  = 3;    //gamedef.YokaLoginType
+}
+message S_RespBindABTestAccount {
+    enum ErrCode {
+        Succ              = 0;
+        ErrAccount        = 1; //错误的账号信息
+        ErrAccountBound   = 2; //账号已被绑定
+        ErrLgTypeBound    = 3; //已绑定此登录方式的账号
+        ErrBindFailed     = 4; //绑定操作失败
+        ErrAccountChannel = 5; //此渠道不能绑定
+        ErrUnknown        = 6; //
+        ErrBindLgType     = 7; //不能绑定此登录方式的账号
+        ErrAccNoReward    = 8; //没内测或返利奖励
+    }
+    ErrCode err_code    = 1;
+    string  err_msg     = 2;
+    string  snda_id     = 3;
+    string  ticket      = 4;
+    int32   login_type  = 5;    //gamedef.YokaLoginType
+}
+
+//首充数据
+message C_ReqUserFirstPayData {
+}
+message S_RespUserFirstPayData {
+    repeated string products = 1 [packed=false];
+}
+//累计充值
+message C_ReqUserTotalTopUp {
+}
+message S_RespUserTotalTopUp {
+    int64  rmb_total = 1;
+}
+
+message S_NoticeHotLivingRoom {
+    int32 room_id = 1;
+}
+
+//微信绑定suid
+message C_ReqUserSuid {
+}
+message S_RespUserSuid {
+    string suid = 1;
+}
+
+//休闲新手阶段是否结束
+message C_ReqEntNoviceEnd {
+
+}
+
+message S_RespEntNoviceEnd {
+    bool is_end = 1;
+}
+
+//请求开卡包相关数据
+message C_ReqOpenCardBagData {
+
+}
+
+message S_RespOpenCardBagData {
+    int32 novice_card_group_level = 1; //新手卡组等级
+}
+
+//推送投放卡牌福利数据
+message S_NtfKeepData {
+    message KeepData {
+     int32 schedule = 1;     //进度
+     bool is_finish = 2;     //是否完成
+     bool is_toke_reward = 3; //是否领取奖励
+    }
+
+    int32 toke_days = 1; //从开始接取多少天了
+    bool is_over = 2; //是否已经结束
+    repeated KeepData sched_data = 3 [packed=false];    //进度数据
+    int64 end_time = 4; //结束时间
+}
+
+//领取投放卡牌进度奖励
+message C_ReqKeepSchedReward {
+    int32 sched = 1;
+}
+
+message S_RespKeepSchedReward {
+    enum ErrCode {
+        Success = 0;
+        ErrHadToke = 1; //已经领取
+        ErrNotFinish = 2; //没有完成
+        ErrUnknown = 3;
+    }
+
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    int32 toke_sched = 3;
+}
+
+message C_ReqRaceRank {
+    gamedef.RaceRankType typ = 1;
+}
+message S_RespRaceRank {
+    enum ErrCode {
+        Succ                = 0;
+        ErrUnknown          = 1;
+    }
+    ErrCode err_code            = 1;
+    gamedef.RaceRankType typ    = 2;
+    repeated gamedef.RaceRankItem rankList = 3 [packed=false];
+    uint32 my_score_key1        = 4;
+}
+
+message C_ReqRaceRankUserInfo {
+    gamedef.RaceRankType typ = 1;
+    repeated uint64 user_id_list = 2 [packed=false];
+}
+message S_RespRaceRankUserInfo {
+    enum ErrCode {
+        Succ                = 0;
+        ErrUnknown          = 1;
+    }
+    ErrCode err_code                        = 1;
+    gamedef.RaceRankType typ                = 2;
+    repeated gamedef.RaceRankItem user_info_list  = 3 [packed=false];
+}
+
+// 获取经验处罚信息
+message C_ReqPunishInfo {
+}
+message S_RespPunishInfo {
+    enum ErrCode {
+        Succ                = 0;
+        ErrUnknown          = 1;
+        ErrGetUserInfo      = 2; // 获取玩家信息失败
+    }
+    ErrCode err_code = 1;
+}
+
+message S_NtfPunishInfo {
+    bool is_in_punish = 1; //是否在经验处罚状态
+}
+
+//斗地主上次选择的两张狼人牌
+message C_ReqDdzLastSelectedWolves {
+
+}
+
+//未变则有数据，变了则为空
+message S_RespDdzLastSelectedWolves {
+    repeated int32 selected_wolves = 1 [packed=false];
+}
+
+// 获取限免套牌信息
+message C_ReqCardGroupTry {
+}
+message S_RespCardGroupTry {
+    enum ErrCode {
+        Succ                = 0;
+        ErrUnknown          = 1;
+        ErrGetUserInfo      = 2; // 获取玩家信息失败
+    }
+    ErrCode err_code = 1;
+}
+
+message S_NtfCardGroupTry {
+    int32 cur_id = 1; //使用中的限免卡组id
+    int32 use_cnt = 2; //已使用次数
+}
+
+// 使用限免套牌
+message C_ReqSetCardGroupTry {
+    int32 cur_id = 1; //使用限免卡组id
+}
+message S_RespSetCardGroupTry {
+    enum ErrCode {
+        Succ                = 0;
+        ErrGetUserInfo      = 1; // 获取玩家信息失败
+        ErrAlreadyInUse     = 2; // 已经在使用
+        ErrOutOfTime        = 3; // 不在使用期
+        ErrOverMaxLimit     = 4; // 使用次数超限制
+        ErrLockEthnic       = 5; //未解锁的势力
+        ErrUserLevel        = 6; // 玩家等级不足
+    }
+    ErrCode err_code   = 1;
+    int32 cur_id       = 2; //使用中的限免卡组id
+}
+
+// 合成限免卡组
+message C_ReqComposeCardGroupTry {
+    int32 cg_try_id = 1; //限免卡组id
+}
+message S_RespComposeCardGroupTry {
+    enum ErrCode {
+        Sucess                  = 0;
+        ErrGetUserInfo          = 1; //获取用户信息失败
+        ErrNoID                 = 2; //非法限免卡组id
+        ErrLockEthnic           = 3; //未解锁的势力
+        ErrGroupNumUpperLimit   = 4; //卡组数量超限
+        ErrEthnic               = 5; //卡牌势力不符
+        ErrNoCard               = 6; //缺少卡牌
+        ErrAddCardGroup         = 7; //添加卡组失败
+        ErrAddCard              = 8; //添加卡牌失败
+        ErrFragmentNotEnough    = 9; //碎片不足
+    }
+    ErrCode err_code    = 1;
+    int32 cg_try_id     = 2; //限免卡组id
+    repeated gamedefv2.DBCard added_cards = 3 [packed = false]; //添加的卡牌
+    int32 cur_fragment  = 4; //当前卡牌碎片
+    int32 add_cg_id     = 5; //生成的收藏册卡组id
+}
+
+//======新月传说======
+//新月传说数据
+message S_NtfNewMoonLegendData {
+    message DayRewardData {
+        int32 day = 1;          //第几天
+        bool is_toke = 2;      //是否领奖
+    }
+
+    int64 expire_time = 1;  //过期时间
+    repeated DayRewardData day_rewards = 2; //每日奖励领取信息
+}
+
+//新月传说每日奖励
+message C_ReqNewMoonLegendReward {
+    int32 day = 1;
+}
+
+message S_RespNewMoonLegendReward {
+    enum ErrCode {
+        Succ            = 0;
+        ErrUnknown      = 1;
+        ErrNoCard       = 2; //没有卡
+        ErrAlreadyTaken = 3; //已经领取过奖励
+        ErrNoUser       = 4; //user没找到
+        ErrNoCfg        = 5; //没有配置
+    }
+
+    ErrCode                err_code      = 1;
+    string                 err_msg       = 2;
+    int32                  day           = 3; //领取每日奖励的时间
+    repeated gamedef.Goods goodsList     = 4 [packed=false];
+}
+
+//天梯星星保护数据变化通知
+message S_NtfLadderProtectInfo {
+    int32 protect_cnt       = 1; // 当前段位的保护次数
+    int32 pgame_cnt         = 2; // 当前段位保护游戏计次
+}
+
+//=======玩家回归=======//
+//推送玩家回归数据
+message S_NtfPlayerRegress {
+    message RewardData {
+        int32 day = 1;     //天数
+        bool is_toke_reward = 2; //是否领取奖励
+    }
+
+    int64 end_time = 1; //结束时间
+    repeated RewardData reward_data = 2 [packed=false];    //领奖数据
+
+}
+
+//领取玩家回归奖励
+message C_ReqPlayerRegressReward {
+    int32 day = 1;
+}
+
+message S_RespPlayerRegressReward {
+    enum ErrCode {
+        Success = 0;
+        ErrUnknown = 1;
+        ErrNoUser = 2;
+        ErrAlreadyToke = 3; //已经领取
+        ErrNotFinish = 4; //没有完成
+
+    }
+
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    int32 day = 3;
+}
+
+//玩家观战设置
+message C_ReportPlayerSpecSetting {
+   bool switch = 1;
+}
+
+// 领取曙光母任务奖励
+message C_ReqFresherTaskRwd {
+    uint32 index = 1; //奖励索引 从0开始
+}
+message S_RespFresherTaskRwd {
+    enum ErrCode {
+        Succ                = 0;
+        ErrGetUserInfo      = 1; // 获取玩家信息失败
+        ErrUserTaskData     = 2; // 获取玩家任务失败
+        ErrAlreadyPick      = 3; // 已经领过
+        ErrNotFit           = 4; // 不满足条件
+        ErrIndex            = 5; // 奖励索引非法
+    }
+    ErrCode err_code   = 1;
+    uint32 index       = 2;
+}
+
+// 领取里程碑今日福利
+message C_ReqMilestoneTaskRwd {
+    uint32 day = 1; //天数
+}
+message S_RespMilestoneTaskRwd {
+    enum ErrCode {
+        Succ                = 0;
+        ErrGetUserInfo      = 1; // 获取玩家信息失败
+        ErrUserTaskData     = 2; // 获取玩家任务失败
+        ErrAlreadyPick      = 3; // 已经领过
+        ErrNotFit           = 4; // 不满足条件
+        ErrDay              = 5; // 奖励天数非法
+    }
+    ErrCode err_code = 1;
+    uint32 day       = 2;
+}

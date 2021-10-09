@@ -1,0 +1,20 @@
+{
+  "1": {
+    "package": "gameproto",
+    "reqName": "Message_Client_ReqLogin",
+    "data": {
+    "account": "sj002",
+    "channel": "0",
+    "imei": "a7e8ae77cb51a13822bad2bb52d4bac8",
+    "login_flag": 0,
+    "password": "sgs",
+    "platform": "windows 未知",
+    "dispatch_channel": "0_TEST"
+},
+    "expect": {
+      "account": "test777",
+      "userID": "2650479142015799",
+      "token": "5769d765a3214c95b0c9b42800e66527"
+    }
+  }
+}

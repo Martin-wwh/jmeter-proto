@@ -1,0 +1,747 @@
+syntax = "proto3";
+
+package com.mapi.werewolf.gamedefv2;
+
+import "sanguosha.com/werewolf/gameproto/gamedef/game_def.proto";
+import "sanguosha.com/werewolf/gameproto/gameconf/game_config.proto";
+
+/* =====================================================
+robot 相关
+=======================================================*/
+message RobotClubData {
+    int32 version = 1; //字段版本标识
+
+}
+message RobotCardData {
+    int32 version              = 1; //字段版本标识
+    repeated int32 RaceRoleids = 2 [packed=false]; //竞技模式使用的卡组
+    int32       CollectCardCnt = 3;
+    int32       CollectSkinCnt = 4;
+}
+message RobotLadderData {
+    int32 version      = 1; //字段版本标识
+   int32  Level        = 2;
+   int32  HistoryLevel = 3;
+   int32  Star         = 4;
+}
+
+message RobotGameData {
+    int32 version         = 1; //字段版本标识
+    int32 EntGameCnt      = 2; //娱乐场次
+    int32 LadderGameCnt   = 3; //天梯场次
+    int32 RaceGameRound   = 4; //竞技轮次
+    int32 CarnivalGameCnt = 5; //狂欢场次
+}
+
+message CarnivalInfo {
+    int64 begin_time              = 1; //联盟模式-本期开始时间
+    int32  now_ethnic             = 2; //联盟模式-正在使用的势力
+    map<int32, bool> used_ethnic  = 3; //联盟模式-已使用的势力
+    bool  is_ethnic_visible       = 4; //使用中的势力是否可见
+}
+
+/*======================================================
+卡组相关
+========================================================*/
+
+enum EthnicStatus {
+    EthnicNone = 0;
+    EthnicLocked = 1;
+    EthnicUnlocked = 2;
+}
+
+message DBAllCardGroups {
+    int32 version                                   = 1; //字段版本标识
+    int32 BattleGroupID                             = 2; //上阵卡组id, -1表示所有卡组都未上阵
+    int32 CardFragment                              = 3;
+//    int32 SkinFragment                              = 4;
+    map<int32, gamedefv2.DBCard>       AllCards     = 5;
+    map<int32, gamedefv2.DBCardGroup>  AllGroups    = 6;
+    map<int32, DBSkin>                 AllSkins     = 7;
+    map<string, int32>                 QualityCores = 8;
+    repeated gameconf.EthnicType UnLockedEthnics    = 9 [packed=false];
+    int32 StaticSkinFrag                            = 10;// 静态皮肤碎片
+    int32 DynamicSkinFrag                           = 11;// 动态皮肤碎片
+    CarnivalInfo carnival_info                      = 12;// 狂欢信息
+    map<string, gamedef.CardGroupUnit> UploadCG     = 13 [packed=false]; // 上传的热门卡组
+    map<int32, int32>    PracticeEthnic2RwdStat     = 14;    // 练习势力领奖状态
+}
+message DBCard {
+   int32 RoleID = 1;
+   int32             SkinID = 2;
+   int32             Cnt    = 3;
+}
+message DBCardGroup {
+    int32              GroupID    = 1;
+    string             Name       = 2;
+    gameconf.EthnicType EthnicType = 3;
+    repeated int32     Roleids    = 4 [packed=false];
+    repeated int32     MergeRoleIDs = 5 [packed=false]; //合体牌
+}
+
+message DBSkin {
+    int32        ID     = 1;
+    CGSkinSource source = 2;
+    int64        ts     = 3;
+}
+
+message QualityCore {
+    gameconf.CGRoleQuality Typ = 1;  //品质类型
+    int32                  Cnt = 2;  //品质数量
+}
+
+// 消耗掉的卡组的索引
+message SpendCardIdx {
+    int32    groupid    = 1;
+    repeated int32 idxs = 2[packed=false];
+}
+
+enum CGSkinSource {
+    InvalidSource = 0;
+    FromGood = 1;
+    FromAddCard = 2;
+    FromGM = 3;
+    FromBuy = 4;
+}
+
+//分解掉的卡牌
+message DecomCard {
+    int32 roleid       = 1;  //角色id
+    int32 frag         = 2;  //碎片
+    QualityCore core   = 3;  //品质核心
+}
+
+// 给客户端
+message CardGroup {
+    int32               GroupID = 1;
+    string              Name    = 2;
+    repeated int32      RoleIDs = 3 [packed=false];
+    bool                CanUse  = 4;
+    gameconf.EthnicType Ethnic  = 5; // 种族
+    repeated int32      MergeRoleIDs = 6 [packed=false]; //合体牌
+}
+
+//牌组ids
+message CardIDs {
+    repeated int32      RoleIDs = 1 [packed=false];
+}
+// 推荐套牌
+message CardGroupInfo{
+	uint64                      UserID          = 1;
+	string                      UserName        = 2;
+    int32                       UserLv          = 3;
+    int32                       LadderLv        = 4;
+    string                      CGName          = 5;
+	gameconf.LadderLevelType    LadderLvType    = 6;
+	gameconf.EthnicType         EthnicType      = 7;
+	repeated int32              RoleIDs         = 8 [packed=false];
+}
+
+//=========================角色相关====================
+enum CGZoneTyp {
+    InvalidZone = 0;
+    // 手牌区
+    Hand  = 1;
+    // 墓地
+    Grave = 2;
+    // 牌堆
+    Stack = 3;
+    // 英雄
+    Hero = 4;
+    // 场外区域
+    OutSide = 5;
+    // 临时区域
+    TmpZone = 6;
+    // 新月区域
+    NewMoon = 7;
+    // 效果卡区域
+    Effect = 8;
+    // 间谍牌区域
+    Spy = 9;
+    // 灾难牌区域 斗地主模式使用
+    Disaster = 10;
+    // 合体牌区域
+    Merge = 11;
+}
+
+
+// 卡牌状态
+enum CGCardState {
+    InvalidState = 0;
+
+    // 初始状态
+    //  无状态即为背面朝上，未使用，存活
+
+    // 明置状态 (正面朝上)
+    FrontTurn = 1;
+    // 技能已使用状态
+    SpellCD = 2;
+    // 濒死状态
+    Dying = 3;
+    // 死亡状态
+    Death = 4;
+
+    //一下为一些效果使用的特殊状态
+    // 被侦查状态
+    Checked = 101;
+    // 蛊毒状态
+    Poison = 102;
+}
+
+// 游戏阶段
+enum CGameStage {
+    CGInvalidStage      = 0;
+    Init                = 1;    // 初始化
+    DdzLandClaim        = 2;    // ddz抢地主
+    DdzLoading          = 3;    // ddz loading阶段
+    InitChangeCards     = 10;   // 一次换牌
+    CarnivalDealCard    = 11;   // 狂欢发牌
+    StartBattle         = 12;   // 开始战斗时
+    Night               = 20;   // 夜晚
+    WolfAction          = 21;   // 狼人刀人阶段
+    Dawn                = 40;   // 天亮
+    DrawCard            = 41;   // 摸牌
+    DdzDisasterCard     = 42;   // 斗地主灾难牌
+    DayTime             = 60;   // 白天
+    DayPlayerAction     = 61;   // 玩家行动
+    Dark                = 80;   // 天黑
+    Newmoon             = 81;   // 新月
+
+    CGGameEnd           = 100;  // 游戏结束
+    CGGameStart         = 101;  // 游戏开始只在断线重连时使用
+    CGGiveUp            = 201;  // 放弃操作阶段(客户端使用)
+}
+
+// CGCardKey 1v1卡牌游戏中卡牌索引
+message CGCardKey {
+    uint32 cfgid = 1;           //game中唯一id
+    CGZoneTyp zone = 2;
+    int32 pos = 3;            //卡牌位置，从1开始
+    int32 skin_id = 4;        // 使用的皮肤
+}
+message CGMarkAttr {
+    CGCardMark mark = 1; // 标记
+    int32 daycnt = 2; // 剩余天数
+}
+// 卡牌数据
+message CGCardData {
+    uint32 cfgid = 1;           //game中唯一id
+    CGZoneTyp zone = 2;
+    int32 pos = 3;
+    repeated CGCardState states = 4 [packed=false];
+    int32 skin_id = 5;        // 使用的皮肤
+    int32 cur_pk_value = 6;   // 当前信用值
+    int32 max_pk_value = 7;   // 最大信用值
+    int32 copy_role_id = 8;     // 复制的卡牌id
+    int32 copy_role_skin_id = 9; // 复制的卡牌使用的皮肤id
+    int32 copy_role_typ = 10;   // 复制身份
+    repeated int32 ex_spell = 11 [packed=false]; // 额外技能
+    bool  is_summon = 12;     // 是否是游戏过程中召唤或复制的卡牌
+    int32 on_board_day = 13;    // 上阵时间
+    repeated CGMarkAttr marks = 14 [packed=false]; // 标记
+    repeated int32 background_spells = 15 [packed=false]; // 后台技能
+    repeated int32 remove_spells = 16 [packed=false]; // 额外技能
+}
+// 单张卡牌key带seat
+message CGGamerCardKey {
+    int32     seat = 1;
+    CGCardKey card = 2;
+}
+
+// 伪装狼的数据
+message CGFakeWolfData {
+    CGCardData card_data = 1;   //伪装狼数据
+    uint32     fake_uid  = 2;   //伪装卡牌uid
+}
+
+message CGCardZone {
+    CGZoneTyp ZoneType = 1;
+    repeated CGCardData CardDatas = 2 [packed=false];
+}
+
+// ForWho 区分相同的一份数据给自己和对手
+enum ForWho{
+    //无效
+    InvalidWho = 0;
+    //自己
+    Self  = 1;
+    //对手
+    Rival = 2;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+// 卡牌标记
+enum CGCardMark {
+    MarkInvalid = 0;
+    Locking = 2;         // 锁定
+    Shield = 3;          // 圣盾标记
+    EverCD = 4;          // 无法自动恢复cd
+    Curse = 6;           // 诅咒
+}
+
+// CGGamerOperationTyp 玩家操作类型
+enum CGGamerOperationTyp {
+    COTInvalid = 0;
+    // 打开狼人卡
+    COTWolfs = 1;
+    // 关闭狼人卡
+    COTCloseWolfs = 2;
+    // 打开牌库
+    COTStack = 3;
+    // 关闭牌库
+    COTCloseStack = 4;
+    // 打开墓地
+    COTCemetery = 5;
+    // 关闭墓地
+    COTCloseCemetery = 6;
+    // 选中卡牌
+    COTChooseCard = 7;
+    // 放弃选中
+    COTFreeCard = 8;
+}
+
+//////////////////////////////////////
+// 技能逻辑配置
+//技能类型
+enum SpellTyp {
+    st_active = 0;  //主动技能
+    st_auto   = 1;  //被动
+    st_param  = 2;  //代码写死不用配置的
+}
+//目标牌属主
+enum SpellCfgTargetTyp {
+	t_any    = 0; // 任意
+	t_my     = 1; // 自己
+	t_opp    = 2; // 对手
+	t_my_lr  = 3; // scard同排卡牌
+	t_opp_lr = 4; // 目标同排
+	t_i_ally = 5; // 自己和盟友
+	t_ally   = 6; // 只有盟友（不包括自己）
+}
+//检查的状态要求
+enum SpellCfgStateReq {
+	sr_any     = 0; // 不要求
+	sr_have    = 1; // 要求有
+	sr_nothave = 2; // 要求没用
+}
+//逻辑步骤中目标卡牌是哪个
+enum SpellCfgStepCardTyp {
+	sc_none           = 0;
+	sc_rand_my        = 1;  //随机我的
+	sc_rand_opp       = 2;  //随机对手的
+	sc_rand_any       = 3;  //随机任意
+	sc_rand_ially     = 4;  //随机我和盟友的卡牌
+	sc_rand_ally      = 5;  //随机盟友的卡牌（不包括自己）
+	sc_all_ially      = 6;  //所有我和盟友的手牌
+	sc_last           = 7;  //上一步的
+	sc_spellcard      = 8;  //发动技能的卡牌
+	sc_client_target  = 9;  //客户端指定的(old)
+	sc_all_my         = 10; //所有我的手牌
+	sc_all_opp        = 11; //所有对手的手牌
+	sc_my_lr          = 12; //scard同排卡牌
+    sc_murder         = 13; //死亡技能的凶手
+    sc_all_both       = 14; //双方的所有牌
+    sc_opp_lr         = 15; //目标同一排所有卡牌,不包括目标
+    sc_fix_my         = 16; //配置的卡牌
+    sc_fix_both       = 17; //双方的固定卡牌c
+    sc_ordered_my     = 18; //按顺序选择卡牌, 如牌堆摸牌
+    sc_ordered_opp    = 19; //按顺序选择卡牌
+    sc_reverse_my     = 20; //按逆序选择卡牌，如圣女复活卡牌的技能
+    //sc_reverse_opp    = 21; //占位，用到时再开发
+    sc_rand_opp_day_max         = 22;   //目标最大数量与天数相同
+    sc_auto_target_murder       = 23;   //被动技能数据目标的伤害者
+    sc_rand_ially_up_sameid     = 24;   //随机我和盟友的暴露同名牌
+    sc_day_my_last_dead         = 25;   //当天白天最后死亡的卡牌
+    sc_rand_ially_not_last      = 26;   //按规则随机己方(包括盟友)非上一个step卡牌
+    sc_new_tmp_appointed_role   = 27;   //在临时区新建指定的卡牌
+    sc_rand_my_lowest_pk_value  = 28;   //随机我的信用值最小的牌
+    sc_ially_day_dead           = 29;   //当天死亡的卡牌
+    sc_rand_my_highest_pk_value = 30;   //随机信用值最大的牌
+    sc_rand_specified_type      = 31;   //指定某一类型的卡牌，eg: param1=“LastWords"
+    sc_night_my_last_dead       = 32;   //夜晚最后死亡的
+	sc_rand_ially_actpt_cnt     = 33;   //随机我的
+	sc_rand_opp_actpt_cnt       = 34;   //随机对手的
+    sc_rand_opp_lowest_pk_value = 35;   //随机对方信用值最小的牌
+    sc_rand_ially_lowest_pk_value = 36; //随机我和盟友的信用值最小的牌
+    sc_rand_each321             = 37;   //特殊321，每个人分别随机
+    sc_ordered_ially            = 38;   //我和盟友 按顺序选择卡牌, 如牌堆摸牌
+    sc_merge_summon_consumables = 39;   //技能卡牌放逐的素材卡牌
+    sc_rand_opp_stack_role_villager=40; //随机一张对方牌库中的神职或村民
+
+    //特殊技能目标
+    sc_special274     = 1000; //两姐妹-姐姐
+    sc_special275     = 1001; //两姐妹-妹妹
+    sc_special305     = 1002; //意念投影师
+    sc_special306     = 1003; //觉醒者
+    sc_special336     = 1004; //代号锁定
+    sc_special376     = 1005; //征兵员
+    sc_special847     = 1006; //军征官
+}
+//逻辑操作
+enum SpellCfgStepTyp {
+    stinvalid       = 0;
+    turnover        = 1;  //翻开,（条件：是什么身份才翻开）
+    attack          = 2;  //攻击
+    turnback        = 3;  //翻回
+    addmark         = 4;  //加标记
+    drawcard        = 5;  //摸牌
+    shuffle         = 6;  //洗牌
+    resurrect       = 7;  //复活
+    offhand         = 8;  //移回牌堆
+    dieoffer        = 9;  //献祭死亡
+    turnover2       = 10; //翻开盖回数量的牌 捣乱的白痴
+    checkcard       = 11; //查看卡牌： 翻开，盖回，做侦查标记
+    removecd        = 12; //清理cd状态
+    addmark2        = 13; //目标死亡，天黑加标记
+    outside         = 14; //目标消失场外
+    //addmark3        = 15; //左右两边明置牌加状态
+    exchange        = 16; //scard和目标交换区域
+    exchange2       = 17; //scard和牌堆最上面两张牌中一张交换位置
+    copyspell       = 18; //复制技能
+    exchange3       = 19; //scard和对手手牌对换位置
+    decide          = 20; //决定并选择一张
+    getOpCard       = 21; //获取他人卡牌到我手牌
+    changespell     = 22; //改变英雄技能
+    addactpoint     = 23; //加行动点数
+    clsallmark      = 24; //清除所有标记
+    summon          = 25; //召唤卡牌到手牌（凭空生成的卡牌）
+    copyspell1      = 26; //复制自己最后死亡的
+    changeroletyp   = 27; //改变目标身份
+    shiftmarkrand   = 28; //把目标的标记随机移到他对手的一张明置牌上
+    turnover3       = 29; //随机翻开目标牌对手的一张同身份牌
+    copycard        = 30; //复制卡牌放入目标区域
+    changeactiontimes=31; //改变某阶段行动次数
+    drawcard1       = 32; //各摸一张牌
+    copyspell2      = 33; //每当有其他狼人卡使用时,复制此狼人卡的技能
+    noconsumeactpoint=34; //(当天不消耗行动点。p1：指定身份不消耗)
+    removemark      = 35; //(清楚指定标记。p1：marks)
+    resurrect2      = 36; //复活且直接从墓地上场
+    turnbackAllShuffle = 37; // 盖回全部卡牌并洗牌
+    turnover4       = 38; //盖回然后翻开盖回数量的牌, 并把盖回又翻开的牌移回卡组
+    attack2         = 39; // 随机攻击敌方多个目标, 目标最大数量与天数相同
+    cdAttack        = 40; // 选择对方一张牌,使其疲劳;如果卡牌已经疲劳,则改为攻击, 并附带其他效果
+    emptystep       = 41; // 啥也不做，目前是处理97技能条件判断问题
+    attackall       = 42; // 攻击符合条件的所有牌
+    burning         = 45; // 点燃场
+    subanger        = 46; // 减少怒火值
+    verify          = 47; // 验证
+    pkcheck         = 48; // 信用值侦查
+    pkattack        = 49; // 信用值攻击
+    addnewmooncard  = 50; // 添加新月卡到新月区
+    offhandall      = 51; // 将双方所有的手牌洗回牌堆
+    curepkvalue     = 52; // 回复信用值
+    setmaxpkvalue   = 53; // 设置最大信用值
+    statedark       = 54; // 天黑流程(技能166,触发天黑时技能,洗牌,然后天黑阶段结束.不引起回合,局内天数,先后手等变化)
+    afterstatedark  = 55; // 天黑流程后，回到当前阶段白天流程(技能166)
+    fillcard        = 56; // 从牌堆补充手牌至p1张
+    turnbackall     = 57; // 盖回所有明置卡牌
+    turnup          = 58; // 明置卡牌，不加cd
+    extranewmoon    = 59; // 增加一轮新月阶段
+    avengeanger     = 60; // 复仇之怒
+    addmaxpkvalue   = 61; // 加信用值上限
+    deathtooppgrave = 62; // 死后进入敌方墓地
+    addaliveday     = 63; // 增加卡牌的已存活天数
+    replacehero     = 64; // 替换英雄卡
+    addpkvalue      = 65; // 加信用值最大和当前同时加
+    turnover5       = 66; // 狼先知
+    resurrect3      = 67; // (复活被献祭的牌)
+    deccurpkvalue   = 68; // 减当前信用值
+    step193         = 69; // 蚀之刻-献祭
+    addcurpkvalue   = 70; // 加信用值
+    drawcard2       = 71; // 摸牌
+    resurrect221    = 72; // (复活品质最高的一张牌)
+    summon2         = 73; // 召唤：从墓地或牌堆召唤明置上场
+    addcurpkvalue243= 74; // 三兄弟-老三
+    adddayact       = 75; // 加白天回合
+    addspell        = 76; // 加额外技能
+    timeescape      = 77; // 下一个白天回合，添加额外的行动力
+    shape           = 78; // 变形，变成另一张卡牌永久性的
+    finishdaytime   = 79; // 结束白天
+    cupid           = 80; // 丘比特记录lover
+    cupidlover      = 81; // 死亡时,对方死亡
+    dienormal       = 82; // 普通死亡
+    expkattack263   = 83; // 口吃法官额外通用攻击
+    newcardtostack  = 84; // 添加新卡牌到牌堆
+    addpkvaluebycond= 85; // 加信用值最大和当前同时加,根据符合条件的卡牌的数量，确定要增加的信用值
+    optioneffect    = 86; // 选择效果卡
+    darkcd          = 87; // 当前阶段冷却，现只支持天黑阶段，其他阶段需要，再做扩充
+    setpkvalue      = 88; // 设置最大和当前同时
+    checkandsel     = 89; // 查看选择一张卡牌执行
+    addmask         = 90; // 添加伪装
+    turnover328     = 91; // 技能328，武断密探的翻开技能
+    addtmppkvalue   = 92; // 加信用值最大和当前同时加,暴露时移除
+    expkattack325   = 93; // 扰乱者额外通用攻击
+    boardsameidcard = 94; // 上阵同名牌
+    draw2swappkvalue= 95; // 摸两张牌交换其pkvalue
+    swapshape       = 96; // 交换
+    decactpoint     = 97; // 减少某牌的技能行动点
+    animation       = 98; // 播放动画通知
+    addorshapemooncard = 99; //添加或变形（已有时）新月卡
+    drawmaxqualitycard = 100; //抽牌库中最好质量的牌
+    enhancehero     = 101; // 强化村庄技能
+    newspycard      = 102; // 添加新间谍卡牌到间谍牌库
+    decmaxpkvalue   = 103; // 减最大信用值,最小减到1
+    nodrawnextday   = 104; // 下次天亮时不能抽牌
+    secretselect    = 105; // 秘密选择
+    killsecretsel   = 106; // 杀死
+    clearcards      = 107; // 清除玩家（默认敌方）牌库中的所有卡牌
+    jumpnextdawn    = 108; // 跳之下一个天亮
+    addpermanentpkvalue = 109; // 加信用值最大和当前同时加
+    showcard        = 110; //展示卡牌,手牌做侦查标记
+    divine          = 111; //占卜卡牌
+    swappkvalue     = 112; //技能发动者与目标交换契约值
+    addactpointbyskill = 113; //通过技能加行动点数
+    removespell     = 114; //永久删除技能
+    inmouthidiot    = 115; //插嘴白痴技能
+    drawcard3       = 116; // 特殊 摸两张牌
+    replacetgt      = 117; // 替罪羊
+    randshape       = 118; //变形，指定随机
+    addgoldcoin     = 119;  //增加金币
+    decgoldcoin     = 120;  //减少金币
+    employ          = 121; //雇佣
+    newcardtohand   = 122; //生成卡牌到场上
+    addrandeffect   = 123; //执行随机效果
+    swappkvalue834  = 124; //两个目标交换契约值
+}
+// 技能时机点
+enum SpellTimePoint {
+    STPInvalid              = 0;
+    STPDark                 = 1;   //天黑时
+    STPDawn                 = 2;   //天亮时
+    STPUseActSpell          = 3;   //主动技能触发后
+    STPUpDead               = 4;   //明置死亡时
+    STPMarkLost             = 5;   //(指定的牌)失去某个标记时
+    STPDead                 = 6;   //自己死亡时遗言技能
+    STPActiveTurnUp         = 7;   //主动翻开时
+    STPOfferDead            = 8;   //自己献祭死亡时
+    STPOtherDead            = 9;   //其他人死亡时触发
+    STPOtherOfferDead       = 10;  //其他牌献祭死亡
+    STPAfterCopy2Stack      = 11;  //每当有牌复制并洗回自己牌库后
+    STPAfterPkAttack        = 12;  //通用攻击后
+    STPAfterPkCheck         = 13;  //通用侦查后
+    STPAfterPkCheckTurnUp   = 14;  //通用侦查成功翻开后
+    STPSpySpell             = 15;  //间谍技能(间谍卡牌上场后触发)
+    STPAfterUseSpy          = 16;  //使用间谍技能后触发
+    STPStartBattle          = 17;  //开始战斗时
+    STPBeforePkAttack       = 18;  //通用攻击前
+    STPShowed               = 19;  //被展示时
+    STPWatchShowed          = 20;  //观察到有卡牌被展示时
+    STPOtherDeadFj          = 21;  //其他人死亡后伏击
+    STPBeforePkAttackFj     = 22;  //被选择为攻击目标时（通用攻击前伏击）
+    STPAfterActiveTurnFj    = 23;  //伏击:当对方神职或村民自曝后
+    STPRegress              = 24;  //回归:自己死亡后，将一张不具有回归的同名牌洗回牌库
+    STPAfterTurnedUp        = 25;  //有契灵暴露后
+    STPBeforePkCheck        = 26;  //通用探查前
+    STPAfterActiveTurnedUp  = 27;  //自爆后
+}
+// 技能扩展类型
+enum SpellExTyp {
+	SETInvalid         = 0;   //无效技能类型
+	SETBackground      = 1;   //后台技能
+	SETCantAutoRecover = 2;   //不会恢复技能(技能在天亮阶段不会恢复.)
+}
+
+//////////////////////////////////////
+// 公会相关
+
+// 会长凉凉
+message MasterCool {
+    uint32 Guildid  = 1; //公会id
+	uint64 Userid   = 2; //用户id
+	int64  CoolTime = 3; //凉凉的触发时间
+}
+
+// user 最后一次登录登出记录
+message UserLastLogin {
+    int64 login_time = 1;  //最后一次的登录时间
+    int64 logout_time = 2; //最后一次的登出时间
+}
+
+// 公会成员
+message DBGuildMember {
+    uint64 userid = 1;                // 用户id
+    int32 contribution_addup = 2;     // 历史累计贡献值
+    GuildRole role = 3;               // 身份权限
+    int64 join_in_ts = 4;             // 加入时间戳
+    string name = 5;                  // 名字
+    int32 contribution_week = 6;      // 周贡献值
+}
+
+message DBGuildMemberShip {
+    int32 version                      = 1; //字段版本标识
+    uint64 master_id                   = 2; //猜测可能是create_id
+    map<uint64, DBGuildMember> members = 3; //所有成员
+    repeated uint64 councilor_ids      = 4;
+    repeated uint64 elder_ids          = 5;
+    repeated uint64 elite_ids          = 6;
+    repeated uint64 member_ids         = 7;
+    uint32 day_kick_cnt                = 8; //每日踢人数量
+    int64 day_kick_fresh_ts            = 9; //刷新时间戳
+}
+
+message DiviRecord {
+    uint64 user_id = 1;
+    int32 divi_level = 2;
+    int32 divi_id = 3;
+}
+
+// 公会占卜
+message DBGuildDivination {
+    int32 version                         = 1; //字段版本标识
+    map<uint64, int64> user_divi_time_map = 2; //用户上次占卜时间
+    repeated DiviRecord divi_records      = 3; //占卜记录
+}
+
+// 公会悬赏
+message GuildUserHuntInfo {
+    uint64 user_id = 1;
+    int32 kill_num = 2; //击杀次数
+    int64 kill_time = 3; //击杀时间戳
+}
+
+message GuildHuntTaskInfo {
+    uint64 user_id = 1;
+    map<int32, int32> task_id_status_map = 2; //悬赏任务id-stauts表
+}
+
+// 公会悬赏
+message DBGuildHunting {
+    int64 start_time = 1; //开始时间
+    int32 card_type =  2; //目标卡牌类型
+    int32 total_kill_num = 3; //击杀总数量
+    map<uint64, GuildUserHuntInfo> user_hunt_info_map = 4; //每人的击杀数,最后击杀时间
+    int32 secret_roleId = 5;//通缉目标
+    uint64 exposer_user_id = 6; //揭露者userid
+    string exposer_user_name = 7; //揭露者username
+    map<uint64, int32> secret_user_kill_num_map = 8; //每人的击杀数
+    repeated int32 task_list = 9;   //正在进行的任务列表
+    map<uint64, GuildHuntTaskInfo> user_task_map = 10; //每人的任务表
+}
+
+// 公会委托
+message GuildUserCommissionInfo {
+    uint64 user_id = 1;
+    int32 cost_item_num = 2; //消耗物品计数
+}
+
+// 公会委托统计
+message DBGuildCommissionStatistic {
+    int64 start_time = 1;   //开始时间
+    int32 sum = 2;          //委托数总和
+    map<uint64, int32> user_commission_num_map = 3; //每人的委托数
+}
+
+message DBGuildJoinApplications {
+    int32 version                      = 1; //字段版本标识
+    map<uint64, int64> applications    = 2;
+}
+
+// 公会身份
+enum GuildRole {
+    invalid = 0;
+    master = 1;     // 公会会长
+    councilor = 2;  // 理事
+    elder = 3;      // 长老
+    elite = 4;      // 精英
+    member = 5;     // 会员
+}
+
+// 公会发展类型
+enum GuildDevType {
+    HomeJob = 0; //内勤
+    Build  = 1; //建设
+}
+
+//工会战旗部件
+message DBGuildFlagPart {
+    gamedef.Goods part = 1;     //部件
+    string part_color = 2; //部件颜色
+    gameconf.FlagPartName part_name = 3; //部件名称
+    bool is_use = 4;
+}
+
+//工会战旗
+message DBGuildFlag {
+    repeated DBGuildFlagPart flag_parts = 1;
+    int64 flag_latest_change_time = 2;
+}
+
+message TgtRecordUnit {
+    int32 tgt_card_type     = 1; //被攻击卡牌类型（狼/神/村民) (1/2/3)
+    int32 tgt_card_state    = 2; //被攻击卡牌状态，潜伏/被探查/暴露 (1/2/3)
+}
+
+// 玩家狼刀日志
+message WolfActionRecord {
+    int32 night_num         = 1; //第几晚
+    int32 seat              = 2; //座位
+    int32 spell_id          = 3; //技能
+    int32 has_checked_card  = 4; //是否有被探查卡牌
+    int32 has_expose_card   = 5; //是否有暴露卡牌
+    repeated TgtRecordUnit tgts = 6 [packed=false]; //记录的目标们
+}
+
+message WolfActionRecordList {
+    repeated WolfActionRecord wolf_act_record = 1 [packed=false]; //记录列表
+}
+
+// 白天开始时的牌数统计
+message DayStartStatistics {
+    int32 day_num               = 1; //第几晚
+    int32 seat                  = 2; //座位
+    int32 hide_card_cnt         = 3; //暗置牌数
+    int32 expose_card_cnt       = 4; //暴露牌数
+    int32 stack_card_cnt        = 5; //牌堆牌数
+}
+
+message DayStartStatisticsRecord {
+    repeated DayStartStatistics card_statistic = 1 [packed=false]; //记录列表
+}
+
+// 死亡方式
+enum DeadTyp {
+    DTInvalid   = 0;
+    DTCurse     = 1;  //诅咒
+    DTOffer     = 2;  //献祭
+    DTKill      = 3;  //杀死
+    DTNormal    = 4;  //普通死亡(pk信用值、丘比特)
+    DTPoison    = 5;  //蛊毒死亡
+    DTSacrifice = 6;  //牺牲
+}
+
+// 旁观类型
+enum LookOnRoomType {
+	LORInvalid = 0;
+	LORGod     = 1;	//上帝视角
+	LORThird   = 2;	//第三方视角
+	LORPlayer  = 3;	//玩家视角
+    LORBlind   = 4; //双盲视角
+}
+
+message DBMonthCard {
+//    int32 ID    = 1; // 月卡id
+    int64 CTime = 1; // 添加时间
+    int64 DTime = 2; // 过期时间
+    int64 RTime = 3; // 奖励时间
+}
+
+// 所有月卡
+message DBMonthCards {
+    int32 version           = 1;    //字段版本标识
+    DBMonthCard MonthCards  = 2;    // id->DBMonthCard 的映射
+}
+
+// 打印的卡牌信息
+message CGLogCard {
+    uint32      uid     = 1;        //game中唯一id
+    CGZoneTyp   zone    = 2;        //区域
+    int32       pos     = 3;        //卡牌位置，从1开始
+    string      typ     = 4;        //卡牌类型
+}
+
+//ai自动套牌卡牌数据
+message DBAutoCardGroup {
+    uint64 user_id = 1;
+    DBCardGroup card_group = 2;
+}

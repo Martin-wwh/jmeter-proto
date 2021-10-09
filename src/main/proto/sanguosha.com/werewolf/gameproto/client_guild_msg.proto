@@ -1,0 +1,1329 @@
+syntax = "proto3";
+
+package com.mapi.werewolf.gameproto;
+
+import "sanguosha.com/werewolf/gameproto/gamedefv2/game_def.proto";
+import "sanguosha.com/werewolf/gameproto/gamedef/game_def.proto";
+import "sanguosha.com/werewolf/gameproto/gameconf/game_config.proto";
+
+// 查看自己的公会
+message C_ReqMyGuild {
+}
+
+message S_RespMyGuild {
+    uint32 guild_id = 1;    // 自己加入的公会id(未加入公会为0)
+    GuildDetail detail = 2; // 公会信息
+    int32 BH_level = 3;
+    int32 DH_level = 4;
+    int32 divination_level = 5;             // 现在的公会占卜等级
+    int64 last_divination_time  = 6;        // 上次占卜时间
+    bool  is_dev_activity_max = 7;          //活跃度是否到达每日每人上限
+}
+
+// 全服公会排名
+message C_ReqGuildRank {
+    int32 page = 1;         // 页数, 10个一页
+}
+
+message S_RespGuildRank {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknown = 1;
+        ErrNoMoreGuild = 2;  // 没有这么多公会了
+    }
+    ErrCode err_code = 2;
+    string err_msg = 3;
+    repeated GuildShortcut guild_list = 1 [packed=false];
+    int32 page = 4;         // 页数
+    int32 my_rank = 5;      // 我的公会排名
+}
+
+
+//推荐公会，只推荐在线的公会
+message C_ReqRecommendGuilds {
+    int32 filter_sex          = 1;  //性别
+    int32 filter_medal        = 2;  //勋章
+    int32 filter_ladder_lv    = 3;  //天梯段位
+}
+
+message S_RespRecommendGuildss {
+    enum ErrCode {
+        Succ           = 0;
+        ErrUnknown     = 1;
+        ErrNoMoreGuild = 2;  // 没有这么多公会了
+    }
+    ErrCode err_code = 1;
+    string err_msg   = 2;
+    repeated GuildShortcut guild_list = 3 [packed=false];
+}
+
+// 公会简略情报
+message GuildShortcut {
+    uint32 id = 1;
+    string avatar = 2;         // 图像
+    string name = 3;           // 名字
+    int32 lv = 4;              // 等级
+    int32 current_members = 5; // 现成员数
+    int32 max_members = 6;     // 最大成员数
+    int32 activity = 7;        // 活跃度
+    int32 recruit_token = 8;   // 召集令数量
+    repeated GuildFlagData guild_flag = 9 [packed=false];   //工会战旗, 使用中的
+}
+
+// 查看公会详情
+message C_ReqGuildDetail {
+    uint32 guild_id = 1;
+}
+
+message S_RespGuildDetail {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrGuildNotFound = 2;
+    }
+    GuildDetail detail = 1;
+    ErrCode err_code = 2;
+}
+
+// 公会详情
+message GuildDetail {
+    GuildShortcut shortcut = 1;
+    int32 activity = 3;         // 公会活跃度
+    uint64 master = 4;                  // 公会会长
+    repeated uint64 councilor_ids = 5 [packed=false];  // 理事
+    repeated uint64 elder_ids = 6 [packed=false];      // 长老
+    repeated uint64 elite_ids = 7 [packed=false];      // 精英
+    repeated uint64 member_ids = 8 [packed=false];     // 普通会员
+    string announcement = 9;                           // 公告
+    int32 shop_level = 11;                             // 商店等级
+    int64 disband_left = 10;                           // 解散倒计时(-1=没有发起解散)
+    int64 last_rename_ts = 12;                         // 上次改名时间戳
+    int32 apply_sex          = 13;  //性别
+    int32 apply_medal        = 14;  //勋章
+    int32 apply_ladder_lv    = 15;  //天梯段位
+    int32 apply_verify       = 16;  //是否需要审核
+    repeated GuildFlagData guild_flag = 17 [packed=false];   //工会战旗， 所有的
+}
+
+// 公会成员的状态与活跃度信息
+message C_ReqGuildMembersStatus {
+    uint32 guild_id = 1;
+}
+
+message S_RespGuildMembersOnlineStatus {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    uint32 guild_id = 3;
+
+    // 所有人员状态
+    message User {
+        uint64             userid        = 1;
+        int32              activity      = 2;  // 成员活跃度
+        gamedef.UserStatus status        = 3;  // 成员状态
+        int32              week_activity = 4;  // 本周活跃度
+        int64              join_ts      = 5;  //加入公会的时间戳
+    }
+    repeated User users = 4 [packed=false];
+}
+
+// 申请列表  这个命名不规范，后缀为：s或list
+message C_ReqGuildApply  {
+    uint32 guild_id = 1;
+}
+
+message S_RespGuildApply {
+    repeated uint64 user_apply = 1 [packed=false];
+    uint32 guild_id = 2;
+}
+
+// 公会成员简略情报
+message GuildMemberShortcut{
+    uint64 userid = 1;
+    gamedefv2.GuildRole role = 2;   // 职务
+    int32 activity = 3;             // 成员活跃度
+}
+
+// 创建公会
+message C_ReqCreateGuild {
+    string name = 1;         // 公会名字
+    string avatar = 2;       // 公会图像
+    string announcement = 3; // 公告
+    int32  apply_verify = 4;   //申请审核  0:不需要 1: 需要
+}
+
+message S_RespCreateGuild {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknown = 1;
+        ErrNameIllegal = 2;       // 名字不合法
+        ErrNameUsed = 3;          // 名字已被使用
+        ErrResourceNotEnough = 4; // 创建公会需要的道具不足
+        ErrAlreadyInGuild = 5;    // 已经是公会成员
+        ErrLevelNotEnough = 6;    // 等级不够
+        ErrAnnouncementIllegal = 7; // 公告不合法
+        ErrInQuitPunish  = 8;     //在退出公会的惩罚期內
+        ErrRepeated = 9;        //频繁操作
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    uint32 guild_id = 3;          // 成功创建的公会编号
+}
+
+//发展公会
+message C_ReqDevelopGuild {
+    uint32 guildid   = 1;
+    gamedefv2.GuildDevType dev_type = 2;
+}
+
+message S_RespDevelopGuild {
+    enum ErrCode {
+        Succ = 0;
+        Unknown = 1;
+        ErrNoGuild = 2;
+        ErrRole = 3;    //没有权限 职务达到"精英"
+        ErrNoItem = 4;  //建设无道具
+    }
+    ErrCode err_code = 1;
+    string  err_msg  = 2;
+    gamedefv2.GuildDevType dev_type = 3;
+    int32 guild_activity_add = 4;
+    bool  is_dev_activity_max = 5;      //活跃度是否到达每日每人上限
+}
+
+// 公会招募
+message C_ReqGuildRecruit {
+    uint32 guildid   = 1;
+    string message   = 2;
+}
+message S_RespGuildRecruit {
+    enum ErrCode {
+        Succ = 0;
+        Unknown = 1;
+        ErrNoGuild = 2;
+        ErrNoRight = 3;
+        ErrExceedRecruitMax = 4;
+        ErrNoRecruitToken = 5;
+    }
+    ErrCode err_code          = 1;
+    string  err_msg           = 2;
+    int32   recruit_token_cnt = 3; //现有的召集令数量
+    string message            = 4;
+}
+
+// 升级公会
+message C_ReqGuildLvUp {
+    uint32 guildid = 1;
+}
+
+message S_RespGuildLvUp {
+    enum ErrCode {
+        Succ = 0;
+        Unknown = 1;
+        GuildDataError = 2;
+        NotEnoughActivity = 3;
+    }
+    uint32 guildid = 1;
+    int32 current_lv = 2;
+    ErrCode result = 3;
+}
+
+message S_NoticeGuildLvUp {
+    uint32 guildid = 1;
+    int32 current_lv = 2;
+}
+
+// 公会职务变动通知
+message S_NoticeMyGuildRoleChange {
+    enum ChangeMode {
+        Active  = 0; //主动转让
+        Passive = 1; //被动转让
+    }
+    uint64 userid = 1;
+    string nick_name = 2;
+    gamedefv2.GuildRole new_role = 3;
+    ChangeMode mode = 4; //0:转动转让, 1: 被动转让
+}
+
+// 公会个人活跃度更新通知
+message S_NtfGuildUserActivityUpdate {
+   uint64 userid  = 1;
+   int32 activity_add = 2;
+}
+
+// 通过或拒绝加入申请
+message C_ReqApplyDealing {
+    enum Answer {
+        Invalid = 0;
+        Agreed = 1;     // 同意加入
+        Refused = 2;    // 拒绝加入
+    }
+    uint64 apply_userid = 1;
+    uint32 guidid = 2;
+    Answer ans = 3;
+}
+
+message S_RespApplyDealing {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknown = 1;
+        ErrUserHasGuild = 2;    // 这个人已经提前加入了别的公会
+        ErrNoRight = 3;         // 没有权限
+        ErrNoApply = 4;         // 这个人并没有申请
+        ErrMaxMembers = 5;      // 公会人数已经到上限了
+        ErrInQuitPunish = 6;    // 在退会的惩罚期內
+        ErrNotFitApplyCondtion = 7; // 不符合加入条件
+    }
+    ErrCode err_code     = 1;
+    string  err_msg      = 2;
+    uint64  apply_userid = 3;
+}
+
+// 拒绝所有申请
+message C_ReqRefuseAllApply {
+    uint64 userid  = 1;
+    uint32 guildid = 2;
+}
+
+message S_RespRefuseAllApply {
+     enum ErrCode {
+        Succ = 0;
+        ErrUnknown = 1;
+        ErrNoGuild = 2;
+        ErrNoRight = 3;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+}
+
+message S_NoticeApplyAnswer {
+    enum Answer {
+        Invalid = 0;
+        Agreed = 1;     // 同意加入
+        Refused = 2;    // 拒绝加入
+    }
+    uint32 guildid = 1;
+    Answer ans = 2;
+    uint64 apply_user_id = 3;
+}
+
+// 职务转移
+message C_ReqGuildRoleTransfer {
+    uint32 guildid = 1;
+    gamedefv2.GuildRole role = 2;   // 职务(事实上目前只能是会长和理事)
+    uint64 memberid = 3;            // 是谁要转移
+}
+
+message S_RespGuildRoleTransfer {
+    enum ErrCode {
+        Succ = 0;
+        NotAllowed = 1; // 不合规的操作
+        ErrUnknown = 2;
+        MemberActivity = 3; // 活跃度不符合要求
+        ErrUserPermission = 4; // 权限不足
+        ErrGuildAlreadyGoalRole = 5; // 已是目标身份
+        ErrGuildRoleCntLimit = 6; // 目标身份人数已到上限
+        ErrUserNotGuildMember = 7; // 非公会成员
+        ErrGuildLastOpTimeLimit = 8; // 小于最短操作间隔
+    }
+    ErrCode result = 1;
+    uint32 guildid = 2;
+    gamedefv2.GuildRole role = 3;
+    uint64 memberid = 4;
+    string nickname = 5;
+}
+
+// 请求加入公会
+message C_ReqGuildJoinApply {
+    uint32 guildid = 1;
+}
+
+message S_RespGuildJoinApply {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknown = 1;
+        AlreadyInGuild      = 2;  //已经有公会了
+        GuildMembersFull    = 3;  //公会满员
+        GuildNotExist       = 4;  //公会不存在
+        AlreadyApplied      = 5;  //已经请求了
+        InQuitPunish        = 6;  //主动退出公会后，1小时內禁止加入公会
+        NotFitApplyCondtion = 7;  //不符合公会的加入条件
+        NoApply             = 8;  //没有申请
+        ExceedApplyNumMax   = 9;  //超过申请上限
+        AlreadyJoined       = 10; //已经申请过
+    }
+    ErrCode err_code = 1;
+    string  err_msg  = 2;
+    bool JoinApplyAgreed = 3;
+}
+
+// 设置申请公会的条件
+message C_ReqSetApplyCondtion {
+    int32 apply_sex          = 1;  //性别
+    int32 apply_medal        = 2;  //勋章
+    int32 apply_ladder_lv    = 3;  //天梯段位
+    int32 apply_verify       = 4;  //是否需要审核
+    uint32 guild_id          = 5;  //公会id
+}
+message S_RespSetApplyCondtion {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknown = 1;
+        ErrNoGuild = 2; //找不到公会
+        ErrNoRight = 3; //没有权限
+    }
+    ErrCode err_code = 1;
+    string err_msg   = 2;
+    int32 apply_sex          = 3;  //性别
+    int32 apply_medal        = 4;  //勋章
+    int32 apply_ladder_lv    = 5;  //天梯段位
+    int32 apply_verify       = 6;  //是否需要审核
+    uint32 guild_id          = 7;  //公会id
+}
+
+// 踢人出公会
+message C_ReqGuildKickOut {
+    uint32 guildid = 1;
+    uint64 userid = 2;
+}
+
+message S_RespGuildKickOut {
+    enum ErrCode {
+        Succ = 0;
+        UserNotExist = 1;
+        GuildNotExist = 2;
+        ErrUnknown = 3;
+        NoPermission = 4;
+        NotAllowed = 5;
+        OverMaxDayKickCnt = 6;
+    }
+    ErrCode err_code = 1;
+    uint32 guildid = 2;
+    uint64 userid = 3;
+}
+
+// 被踢出公会通知
+message S_NoticeGuildKicked {
+    uint32 guildid = 1;
+}
+
+// 退出公会
+message C_ReqGuildMemberQuit {
+    uint32 guildid = 1;
+}
+
+message S_RespGuildMemberQuit {
+    enum ErrCode {
+        Succ = 0;
+        UserNotExist = 1;
+        GUildNotExist = 2;
+        ErrUnknown = 3;
+        NotAllowed = 4;
+    }
+    ErrCode err_code = 1;
+    uint32 guildid = 2;     // 公会id
+}
+
+// 公会成员变动通知
+message S_NoticeGuildMemberChange {
+    enum ChangeType {
+        Invalid = 0;
+        Join = 1;
+        Leave = 2;
+    }
+    ChangeType change = 1;
+    uint64 userid = 2;
+    uint32 guildid = 3;
+    string nickname = 4;
+}
+
+// 改名字
+message C_ReqGuildNameChange {
+    uint32 guildid = 1;
+    string new_name = 2;
+}
+
+message S_RespGuildNameChange {
+    enum ErrCode {
+        Succ = 0;
+        ErrGuildNotExist = 1;
+        ErrNoChange = 2;
+        ErrInRenameCD = 3;
+        ErrNoPermission = 4;
+        ErrNameIllegal = 5;
+        ErrNameUsed = 6;
+        ErrSave = 7;
+        ErrSubGood = 8;
+        ErrRepeated = 9; //频繁操作
+        ErrBanRename = 10; //玩家被禁止修改
+    }
+    ErrCode result = 1;
+    uint32 guildid = 2;
+    string new_name = 3;
+}
+
+// 改公告
+message C_ReqGuildAnnouncementChange {
+    uint32 guildid = 1;
+    string new_announcement = 2;
+}
+
+message S_RespGuildAnnouncementChange {
+    enum ErrCode {
+        Succ = 0;
+        ErrGuildNotExist = 1;
+        ErrAnnouncementIllegal = 2;
+        ErrNoPermission = 3;
+        ErrUnknown = 4;
+        ErrBanAnnouncement = 5; //玩家被禁止修改
+    }
+    ErrCode result = 1;
+    uint32 guildid = 2;
+    string new_announcement = 3;
+}
+
+// 改头像
+message C_ReqGuildAvatarChange {
+    uint32 guildid = 1;
+    string new_avatar = 2;
+}
+
+message S_RespGuildAvatarChange {
+    enum ErrCode {
+        Succ = 0;
+        ErrGuildNotExist = 1;
+        ErrNoPermission = 2;
+        ErrUnknown = 3;
+    }
+    ErrCode result = 1;
+    uint32 guildid = 2;
+    string new_avatar = 3;
+}
+
+// 公会编辑
+message S_NoticeGuildInfoEdit {
+    enum InfoType {
+        Invalid = 0;
+        Name = 1;
+        Avatar = 2;
+        Announcement = 3;
+        Activity = 4;
+        ApplyCondtion = 5;
+        RecruitToken  = 6;
+    }
+    InfoType info = 1;  // 改了哪个
+    string edit = 2;    // 编辑后内容
+    uint32 guildid = 3; // 公会id
+    int64 last_rename_ts = 4; //上次改名时间
+}
+
+// 公会真的解散了 告辞
+message S_NoticeGuildDisband {
+    uint32 guildid = 1;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// 发送聊天消息
+message C_ReqGuildChatMsgSend {
+    int32 seq = 1;          // 序列号
+    uint32 guildid = 2;     // 公会
+    string msg = 3;         // 消息
+    int32 bubble_good_id = 4; //气泡道具id
+}
+
+message S_RespGuildChatMsgSend {
+    enum ErrCode {
+        Succ = 0;
+        ErrNotAllowed = 1;
+        ErrUnknown = 2;
+        ErrIllegal = 3;
+        ErrBanned = 4;
+    }
+    ErrCode result = 1;
+    int32 seq = 2;
+}
+
+// 聊天消息推送
+message S_NoticeGuildChatMsg {
+    uint64 userid = 1;
+    int32 seq = 2;
+    uint32 guildid = 3;
+    string msg = 4;
+    int64 ts = 5;
+    int32 bubble_good_id = 6; //气泡道具id
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// 公会占卜
+message DivinationInfo {
+    int32 divination_level = 1;       // 现在的公会占卜等级
+    int64 last_divination_time  = 2;       // 上次占卜时间
+    repeated gamedefv2.DiviRecord divi_records = 3[packed=false]; //占卜记录 先->后
+}
+
+message C_ReqGuildDivinationInfo {
+    uint32 guildid = 1;
+}
+
+message S_RespGuildDivinationInfo {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknown   = 1;
+        ErrNoGuild   = 2; //无此公会
+        ErrNonMember = 3; //非会员
+        ErrRepeated  = 4; //频繁操作
+    }
+    ErrCode err_code = 1;
+    DivinationInfo diviInfo = 3;
+}
+
+message C_ReqGuildDivination {
+    uint32 guildid = 1;
+}
+
+message S_RespGuildDivination {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknown   = 1;
+        ErrNoGuild   = 2; //无此公会
+        ErrUseItem  = 3; // 使用道具失败
+        ErrAddItem  = 4; // 添加道具失败
+        ErrNonMember = 5; //非会员
+        ErrRepeated = 6; //频繁操作
+    }
+    ErrCode err_code = 1;
+    int32  divi_lv  = 2;
+    int32  divi_id  = 3;
+}
+
+//占卜级别升级
+message C_ReqUpgradeDivinationLv {
+    uint32 guildid = 1;
+}
+
+message S_RespUpgradeDivinationLv {
+    enum ErrCode {
+        Succ = 0;
+        Unknown = 1;
+        GuildLvNotEnough = 2;
+        NoPermission = 3;
+        GuildDataError = 4;
+        NoGuild = 5;
+    }
+    uint32 guildid = 1;
+    ErrCode result = 2;
+    int32 divination_lv = 3;
+}
+
+// 广播公会占卜升级
+message S_NtfUpgradeDivinationLv {
+    uint32 guildid = 1;
+    int32 divination_lv = 2;
+}
+
+//每日悬赏级别升级
+message C_ReqUpgradeHuntingLv {
+    uint32 guildid = 1;
+}
+
+message S_RespUpgradeHuntingLv {
+    enum ErrCode {
+        Succ = 0;
+        Unknown = 1;
+        GuildLvNotEnough = 2;
+        NoPermission = 3;
+        GuildDataError = 4;
+        NoGuild = 5;
+    }
+    uint32 guildid = 1;
+    ErrCode result = 2;
+    int32 hunting_lv = 3;
+}
+
+// 广播公会悬赏升级
+message S_NtfUpgradeHuntingLv {
+    uint32 guildid = 1;
+    int32 hunting_lv = 2;
+}
+
+// 获取公会悬赏信息
+message C_ReqGuildHuntingInfo {
+    uint32 guildid = 1;
+}
+
+message GuildHuntTaskStatus {
+    int32 task_id = 1;
+    int32 task_status = 2;
+}
+
+message S_RespGuildHuntingInfo {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknown   = 1;
+        ErrNoGuild   = 2; //无此公会
+        ErrNonMember = 3; //非会员
+    }
+    ErrCode err_code = 1;
+    int32 hunting_lv = 2;       // 现在的公会占卜等级
+    int32 card_type = 3; //目标卡牌类型
+    int32 total_kill_num = 4; //击杀总数量
+    int32 my_kill_num = 5; //击杀总数量
+    int32 secret_roleId = 6;//通缉目标
+    uint64 exposer_user_id = 7; //揭露者userid
+    string exposer_user_name = 8; //揭露者username
+    int32 my_secret_kill_num = 9; //杀死秘密通缉目标的数量
+    repeated int32 task_list = 10[packed=false];   //正在进行的任务列表
+    repeated GuildHuntTaskStatus tasks_status = 11[packed=false]; //任务的状态
+}
+
+// 获取公会悬赏排行
+message C_ReqGuildHuntingRank {
+    uint32 guildid = 1;
+    int64 version = 2;
+}
+
+message S_RespGuildHuntingRank {
+     enum ErrCode {
+        Succ = 0;
+        ErrUnknown   = 1;
+        ErrNoGuild   = 2; //无此公会
+        ErrNonMember = 3; //非会员
+    }
+    ErrCode err_code = 1;
+    int64 version = 2;
+    repeated gamedefv2.GuildUserHuntInfo ranklist = 3[packed=false];
+}
+
+// 领取公会悬赏任务奖励
+message C_ReqGuildHuntingTaskReward {
+    uint32 guildid = 1;
+    int32 task_id = 2;
+}
+
+message S_RespGuildHuntingTaskReward {
+     enum ErrCode {
+        Succ = 0;
+        ErrUnknown   = 1;
+        ErrNoGuild   = 2; //无此公会
+        ErrNonMember = 3; //非会员
+        ErrAddItem  = 4; // 添加道具失败
+        ErrTaskNotFinish  = 5; // 任务未完成
+        ErrAlreadyGetAward  = 6; // 奖励已领取
+        ErrRepeated = 7; //频繁操作
+    }
+    ErrCode err_code = 1;
+    int32 task_id = 2;
+}
+
+
+// ---------------------------------------------------------------------------------------------------------------------
+// 公会商店升级
+message C_ReqGuildShopUpgrade {
+    uint32 guildid = 1;
+}
+
+message S_RespGuildShopUpgrade {
+    enum ErrCode {
+        Succ = 0;
+        Unknown = 1;
+        NoPermission = 2;
+    }
+    uint32 guildid = 1;
+    ErrCode result = 2;
+    int32 shop_level = 3;
+}
+
+// 公会商店升级通知
+message S_NoticeGuildShopUpgrade {
+    uint32 guildid = 1;
+    int32 current_shop_level = 2;
+}
+
+message S_RespGuildShopRestock {
+    enum ErrCode {
+        Succ = 0;
+        Unknown = 1;
+        NoPermission = 2;
+        UserNotFound = 3;
+    }
+    uint32 guildid = 1;
+    ErrCode result = 2;
+    repeated uint32 goods_list = 3[packed=false];
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// 公会邀请约战
+message C_ReqGuildDateInvite {
+    uint32 guildid = 1;
+    string message = 2;
+}
+
+message S_RespGuildDateInvite {
+    enum ErrCode {
+        Succ = 0;
+        Unknown = 2;
+        NotFindGuild = 3; //未找到公会
+        AlreadyDate = 4; //约战已经存在
+        NetErr = 5; //网络错误
+        NoBattleCardGroup = 6; //没有上阵卡组
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    uint32 guildid = 3;
+    int32 guild_date_seq = 4;
+}
+
+message S_NoticeGuildDateInvite {
+    uint32 guildid = 1;
+    uint64 userid = 2;
+    int32 guild_date_seq = 3;
+    int64 date_ts = 4;
+    string message = 5;
+}
+
+// 接受公会约战
+message C_ReqGuildDateAccept {
+    uint32 guildid = 1;
+    uint64 from_userid = 2;   // 约战的发起者
+    int32 guild_date_seq = 3;
+}
+
+message S_RespGuildDateAccept {
+    uint32 guildid = 1;
+    uint64 from_userid = 2;
+    int32 guild_date_seq = 3;
+    enum ErrCode {
+        Succ = 0;
+        AlreadyTaken = 1;   // 已经被别人接了
+        Timeout = 2;        // 超时
+        ErrUnknown = 3;
+        NetErr = 4;  //网络错误
+		NoBattleCardGroup = 5; //没有上阵卡组
+    }
+    ErrCode err_code = 4;
+    string  err_msg = 5;
+}
+
+message S_NoticeGuildDateAccept {
+    uint32 guildid = 1;
+    int32 guild_date_seq = 2;
+    uint64 invited = 3;     // 发起者
+    uint64 accepted = 4;    // 接受者
+    int32 delaySec = 5;
+    int64 dateTs = 6;
+}
+
+// 取消公会约战
+message C_ReqGuildDateCancel {
+    uint32 guildid = 1;
+}
+
+message S_RespGuildDateCancel {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknown = 3;
+    }
+    ErrCode result         = 1;
+    string  err_msg        = 2;
+    uint32  guildid        = 3;
+    int32   guild_date_seq = 4;
+}
+
+//通知取消约战
+message S_NoticeGuildDateCancel {
+    uint32 guildid        = 1;
+    int32  guild_date_seq = 2;
+}
+
+// 公会约战结束通知
+message S_NoticeGuildDateGameResult {
+    uint32 guildid = 1;
+    int32 guild_date_seq = 2;
+    uint64 winner = 3;
+    uint64 loser = 4;
+    int64 ts = 5;
+    string url = 6;
+}
+
+// 搜索公会
+message C_ReqGuildSearch {
+    string guild_name = 1;
+}
+
+message S_RespGuildSearch {
+    bool found = 1;
+    uint32 guildid = 2;
+    GuildShortcut shortcut = 3;
+    enum ErrCode {
+        Succ = 0;
+        Unknown = 1;
+        NameIllegal = 2;
+    }
+    ErrCode err = 4;
+}
+
+// 搜索公会成员
+message C_ReqGuildMemberSearch {
+    uint32 guildid = 1;
+    string member_name = 2;
+}
+
+message S_RespGuildMemberSearch {
+    bool found = 1;
+    uint32 guildid = 2;
+    uint64 member_id = 3;
+    enum ErrCode {
+        Succ= 0;
+        Unknown = 1;
+        NameIllegal = 2;
+    }
+    ErrCode err = 5;
+}
+
+// 根据id而不是名字查找公会的简略情报
+message C_ReqGetGuildShortcut {
+    uint32 guildid = 1;
+}
+
+message S_RespGetGuildShortCut {
+    enum ErrCode {
+        Succ = 0;
+        ErrNoGuildData = 1;
+        ErrInternal    = 2;
+    }
+    uint32 guildid = 3;
+    ErrCode err_code = 1;
+    GuildShortcut shortcut = 2;
+}
+
+// 广播会长拒绝了所有申请
+message S_NtfGuildRefuseAllApply{
+}
+
+message LsGdsReqCancelGuildDate {
+    int64   seqid      = 1;
+    uint64  userid     = 2;
+}
+message GdsLsRespCancelGuildDate {
+    int64   seqid      = 1;
+    uint64  userid     = 2;
+}
+
+/////////////////////////////////////////////
+// 玩家公会寻访数据
+message DBGuildXfData {
+    uint64  userid   = 1;
+    uint32  guildid  = 2;
+    int32   cardid   = 3;
+    int32   xf_value = 4;
+    string  xf_words = 5;
+    int32   xf_times = 6;
+}
+message GuildXfHelpInfo {
+    uint64  userid = 1;
+    int64   ts     = 2;
+}
+
+// 获取寻访数据
+message C_ReqUserXfData {
+    uint64  userid = 1;
+}
+message S_RespUserXfData {
+    uint64  userid   = 1;
+    int32   cardid   = 2;
+    int32   xf_value = 3;   //总寻访值
+    string  xf_words = 4;
+    int32   xf_times = 5;   //成功寻访次数
+    bool    helpLimit= 6;   //已经帮助过他了(请求别人的寻访数据时)
+}
+// 请求公会寻访列表
+message C_ReqGuildXfUserList {
+}
+message S_RespGuildXfUserList {
+    repeated uint64 user_list = 1[packed=false];    //未帮助过的user列表
+    repeated uint64 helped_list = 2[packed=false];  //已帮助过的user列表
+}
+// 请求帮助列表
+message C_ReqXfHelpList {
+}
+message S_RespXfHelpList {
+    message HelpInfo {
+        uint64  userid = 1;
+        int64   ts     = 2;
+        bool    helped = 3; //请求列表的玩家是否帮过此人
+    }
+    repeated HelpInfo help_list = 1[packed=false];
+}
+// 更换添加寻访卡牌
+message C_ReqChangeXfCard {
+    int32 new_card = 1;
+    int32 money = 2;
+}
+message S_RespChangeXfCard {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknown      = 1;
+        ErrNoGuild      = 2;    //无公会
+        ErrNoNewCard    = 3;    //找不到新卡牌配置
+        ErrCardCantXf   = 4;    //卡牌不能寻访
+        ErrReqMoney     = 5;    //请求消耗的钱数不对
+        ErrCostMoney    = 6;    //扣钱失败
+        ErrAddUserXf    = 7;    //添加玩家寻访数据失败
+    }
+    ErrCode err_code = 1;
+    string  err_msg = 2;
+    int32 new_card = 3;
+    int32 money = 4;
+}
+// 更换添加寻访词
+message C_ReqChangeXfWords {
+    string words = 1;
+}
+message S_RespChangeXfWords {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknown = 1;
+        ErrNoGuild = 2;
+        ErrSetCardFirst = 3;    //第一次必须先设置卡牌
+    }
+    ErrCode err_code = 1;
+    string words = 2;
+}
+// 获得寻访卡牌
+message C_ReqGetXfCard {
+}
+message S_RespGetXfCard {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknown = 1;
+        ErrNoGuild = 2;             //玩家没有公会数据
+        ErrNoUserXfData = 3;        //玩家没有寻访数据
+        ErrNoXfCard = 4;            //没有寻访卡牌数据
+        ErrAddCard = 5;             //添加卡牌失败
+        ErrNotEnoughXfValue = 6;    //寻访值不够
+        ErrGetCardGood = 7;         //获取卡牌道具信息失败
+        ErrRepeated = 8;            //
+    }
+    ErrCode err_code = 1;
+    int32 cardid = 2;
+}
+// 帮助寻访卡牌
+message C_ReqHelpXfCard {
+    uint64 helped_userid = 1;      //被帮助的人
+}
+message S_RespHelpXfCard {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknown          = 1;
+        ErrNoGuild          = 2;
+        ErrNoUserXf         = 3;    //没找到此人寻访
+        ErrUseItem          = 4;    //消耗道具失败
+        ErrCantHelpSelf     = 5;    //不应该帮自己
+        ErrHelperMaxLimit   = 6;    //帮助者今天帮助上限
+        ErrHelpedLimit      = 7;    //被帮者今天被帮上限
+        ErrDayHelpLimit     = 8;    //今天已经帮过他了
+        ErrRepeated         = 9;    //频繁操作
+        ErrNotSameGuild     = 10;   //不在同一个公会
+    }
+    ErrCode err_code    = 1;
+    string  err_msg     = 2;
+    uint64 helped_userid = 3;       //被帮助的人
+    int32  xf_value     = 4;        //帮助后的寻访值
+}
+// 通知寻访数值变化
+message S_NtfXfValue {
+    uint64  helper_userid   = 1;  //帮手
+    uint64  helped_userid   = 2;  //被帮的人
+    int32   xf_value        = 3;
+    int32   v_add           = 4;
+    string  help_user       = 5;
+}
+
+//公会宝图级别升级
+message C_ReqUpgradeTreasureLv {
+    uint32 guildid = 1;
+}
+
+message S_RespUpgradeTreasureLv {
+    enum ErrCode {
+        Succ = 0;
+        Unknown = 1;
+        GuildLvNotEnough = 2;
+        NoPermission = 3;
+        GuildDataError = 4;
+        NoGuild = 5;
+    }
+    uint32 guildid = 1;
+    ErrCode result = 2;
+    int32 treasure_lv = 3;
+}
+
+// 广播公会宝图级别升级
+message S_NtfUpgradeTreasureLv {
+    uint32 guildid = 1;
+    int32 treasure_lv = 2;
+}
+
+// 获取公会宝图信息
+message C_ReqGuildTreasureInfo {
+}
+
+message S_RespGuildTreasureInfo {
+     enum ErrCode {
+        Succ = 0;
+        ErrUnknown   = 1;
+    }
+    ErrCode err_code = 1;
+    int32 cnt = 2;
+    int32 last_pick_treasure_id = 3;
+    int32 last_client_up_cnt = 4;
+}
+
+// 同步目前宝图已拼接数
+message C_SyncGuildTreasureClientCnt {
+    int32 last_client_up_cnt = 1;
+}
+
+
+// 领取公会宝图奖励
+message C_ReqGuildTreasureReward {
+    uint32 guildid = 1;
+    int32 treasure_id = 2;
+}
+
+message S_RespGuildTreasureReward {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknown   = 1;
+        ErrNoGuild   = 2; //无此公会
+        ErrNonMember = 3; //非会员
+        ErrAddItem  = 4; // 添加道具失败
+        ErrTaskNotFinish  = 5; // 任务未完成
+        ErrAlreadyGetAward  = 6; // 奖励已领取
+        ErrNoTreasureCfg  = 7; // 没有宝图奖励配置
+    }
+    ErrCode err_code = 1;
+    int32 treasure_id = 2;
+}
+
+message C_ReqGuildTipNeedInfo {
+    uint32 guildid = 1;
+}
+
+message S_RespGuildTipNeedInfo {
+     enum ErrCode {
+        Succ = 0;
+        ErrUnknown   = 1;
+        ErrNoGuild   = 2; //无此公会
+        ErrNonMember = 3; //非会员
+    }
+    ErrCode err_code = 1;
+    int32 guild_rank = 2;           // 我的公会排名
+    int32 guild_rank_last_week = 3;    // 我的公会上周排名
+    repeated GuildHuntTaskStatus tasks_status = 4[packed=false]; //任务的状态
+    int64 xf_last_helped_ts = 5;    // 寻访最后一次被帮助的时间
+}
+
+// 获取公会委托信息
+message C_ReqGuildCommissionInfo {
+}
+
+message S_RespGuildCommissionInfo {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknown   = 1;
+    }
+    ErrCode err_code = 1;
+    gamedef.DBGuildCommission commission_info = 2;
+}
+
+// 开始公会委托
+message C_ReqStartGuildCommission {
+    int32 commission_id = 1;
+}
+
+message S_RespStartGuildCommission {
+    enum ErrCode {
+        Succ                = 0;
+        ErrUnknown          = 1;
+        ErrNoGuild          = 2; // 无此公会
+        ErrGetUserInfo      = 3; // 获取玩家信息失败
+        ErrNoCfg            = 4; // 没有配置
+        ErrGetGoodsInfo     = 5; // 获取玩家道具信息失败
+        ErrHasDoing         = 6; // 已有正在进行中的委托
+        ErrOverLimit        = 7; // 执行次数超上限
+        ErrSubGood          = 8; // 扣减道具失败
+    }
+    ErrCode err_code = 1;
+    gamedef.DBGuildCommission commission_info = 2;
+}
+
+// 完成公会委托
+message C_ReqFinishGuildCommission {
+    int32 commission_id = 1;
+}
+
+message S_RespFinishGuildCommission {
+    enum ErrCode {
+        Succ                = 0;
+        ErrUnknown          = 1;
+        ErrNoGuild          = 2; // 无此公会
+        ErrGetUserInfo      = 3; // 获取玩家信息失败
+        ErrNoCfg            = 4; // 没有配置
+        ErrGetGoodsInfo     = 5; // 获取玩家道具信息失败
+        ErrAddItem          = 6; // 添加道具失败
+        ErrNotFitCond       = 7; // 不满足条件
+    }
+    ErrCode err_code = 1;
+    gamedef.DBGuildCommission commission_info = 2;
+}
+
+// 领公会委托阶段奖励
+message C_ReqPickCommissionStageReward {
+    int32 commission_stage_id = 1;
+}
+
+message S_RespPickCommissionStageReward {
+    enum ErrCode {
+        Succ                = 0;
+        ErrUnknown          = 1;
+        ErrNoGuild          = 2; // 无此公会
+        ErrGetUserInfo      = 3; // 获取玩家信息失败
+        ErrNoCfg            = 4; // 没有配置
+        ErrGetGoodsInfo     = 5; // 获取玩家道具信息失败
+        ErrAddItem          = 6; // 添加道具失败
+        ErrNotFitCond       = 7; // 不满足条件
+        ErrAlreadyGetAward  = 8; // 奖励已领取
+    }
+    ErrCode err_code = 1;
+    gamedef.DBGuildCommission commission_info = 2;
+}
+
+// 领公会委托等级奖励
+message C_ReqPickCommissionLvReward {
+    int32 commission_lv = 1;
+}
+
+message S_RespPickCommissionLvReward {
+    enum ErrCode {
+        Succ                = 0;
+        ErrUnknown          = 1;
+        ErrNoGuild          = 2; // 无此公会
+        ErrGetUserInfo      = 3; // 获取玩家信息失败
+        ErrNoCfg            = 4; // 没有配置
+        ErrGetGoodsInfo     = 5; // 获取玩家道具信息失败
+        ErrAddItem          = 6; // 添加道具失败
+        ErrNotFitCond       = 7; // 不满足条件
+        ErrAlreadyGetAward  = 8; // 奖励已领取
+    }
+    ErrCode err_code = 1;
+    gamedef.DBGuildCommission commission_info = 2;
+}
+
+// 获取公会委托排行
+message C_ReqGuildCommissionRank {
+    uint32 guildid = 1;
+    int64 version = 2;
+}
+
+message S_RespGuildCommissionRank {
+     enum ErrCode {
+        Succ = 0;
+        ErrUnknown   = 1;
+        ErrNoGuild   = 2; //无此公会
+        ErrNonMember = 3; //非会员
+    }
+    ErrCode err_code        = 1;
+    int64 version           = 2;
+    int32 sum               = 3;
+    int32 commission_rank   = 4;
+    repeated gamedefv2.GuildUserCommissionInfo ranklist = 5[packed=false];
+}
+
+//工会战旗信息
+message GuildFlagData {
+    gameconf.FlagPartName part_name = 1; //部件名称
+    string part_color = 2; //部件颜色
+    gamedef.Goods part = 3; //部件
+    bool is_use = 4;
+}
+
+//更改战旗
+message C_ReqChangeGuildFlag {
+    uint32 guild_id = 1;
+    repeated GuildFlagData guild_flag = 2[packed=false];
+}
+
+message S_RespChangeGuildFlag {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknown = 1;
+        ErrNoGuild = 2;         //工会不存在
+        ErrNoMember = 3;        //不是工会成员
+        ErrNoPermission = 4;    //没有权限
+        ErrPartNotExist = 5;    //部件不存在
+        ErrWithinChangeLimitPeriod = 6; //两次更改间隔保护期内
+        ErrPartUnlock = 7; //部件未解锁
+        ErrPartConfigNotFound = 8; //部件配置未找到
+    }
+
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    repeated GuildFlagData guild_flag = 3[packed=false];
+}
+
+//通知战旗更改
+message S_NtfGuildFlagChanged {
+    repeated GuildFlagData guild_flag = 3[packed=false];
+}
+
+//通知部件解锁
+message S_NtfGuildFlagPartUnlocked {
+    repeated GuildFlagData guild_flag = 3[packed=false];
+}
+
+// 购买战旗部件
+message C_ReqBuyGuildFlagPart {
+    uint32 guild_id = 1;
+    repeated gamedef.BuyGoodsParam part_items = 3[packed=false];
+}
+
+message S_RespBuyGuildFlagPart {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnkown = 1;
+        ErrNoUser = 2;
+        ErrUserShopData = 3;
+        ErrNoGoodsCfg = 4;
+        ErrDiffUpTime = 5;
+        ErrDiffShopType = 6;
+        ErrDiffPrice = 7;
+        ErrLimit = 8;
+        ErrNotEnoughMoney = 9;
+        ErrUserGoodsData = 10;
+        ErrAddItems = 11;
+        ErrSubMoney = 12;
+        ErrTimeout = 13;
+        ErrDiamondConsumeLimit = 14;
+        ErrNoGuildLvInfo = 15;
+        ErrBuyMax = 16;                 //单次购买上限
+        ErrNotEnoughBuyRightGood = 19;  //购买权道具不足
+        ErrSubBuyRightGood = 20;        //扣减购买权道具失败
+        ErrNoGuild = 21;                //工会不存在
+        ErrNoMember = 22;               //不是工会成员
+        ErrNoPermission = 23;           //没有权限
+        ErrPartConfigNotFound = 24;     //部件配置未找到
+        ErrPartHadUnlocked = 25;        //部件已解锁
+        ErrOtherMemberIsBuying = 26;    //其他成员正在购买
+        ErrShopItemConfigNotFound = 27; //商品配置未找到
+        ErrBanUserShop = 28;            //禁止玩家充值购买
+        ErrBanBuyByGm = 29;             //禁止购买
+    }
+
+    ErrCode err_code = 1;
+    repeated gamedef.Goods goods = 2[packed=false];
+    int64   ban_sec = 3;        //禁止玩家充值购买多少秒
+}

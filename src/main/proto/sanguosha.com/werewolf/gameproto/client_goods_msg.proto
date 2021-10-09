@@ -1,0 +1,226 @@
+syntax = "proto3";
+
+// 道具相关.
+
+package com.mapi.werewolf.gameproto;
+
+import "sanguosha.com/werewolf/gameproto/gamedef/game_def.proto";
+import "sanguosha.com/werewolf/gameproto/gameconf/game_config.proto";
+
+message C_ReqGoodsByCategory {
+    gameconf.GoodsCategory category = 1;
+}
+
+message S_RespGoodsByCategory {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    gamedef.GoodsCategoryGroup goods_group = 3;
+}
+
+message C_ReqAllGoods {
+}
+
+message S_RespAllGoods {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    repeated gamedef.GoodsCategoryGroup     goods_groups = 3 [packed=false];
+    repeated gamedef.DelGoodsCategoryGroup  del_goods = 4 [packed=false];
+}
+
+message C_ReqUseGoods {
+    gameconf.GoodsCategory category = 1;
+    int32 id = 2;
+    bytes uid = 3;
+}
+
+message S_RespUseGoods {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+
+    gameconf.GoodsCategory category = 3;
+    int32 id = 4;
+    bytes uid = 5;
+}
+
+message C_ReqCancelUseGoods {
+    gameconf.GoodsCategory category = 1;
+    int32 id = 2;
+    bytes uid = 3;
+}
+
+message S_RespCancelUseGoods {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+
+    gameconf.GoodsCategory category = 3;
+    int32 id = 4;
+    bytes uid = 5;
+}
+
+
+// 道具增加的统一通知.
+message S_NoticeAddGoods {
+    repeated gamedef.Goods GoodsList = 1 [packed=false];
+    string         from      = 2;
+    repeated gamedef.GoodsReplaceInfo GoodsReplaceInfos = 3[packed=false]; //道具替换信息
+}
+
+// 道具减少的统一通知.
+message S_NoticeSubGoods {
+    gameconf.GoodsCategory category = 1;
+    int32 id = 2;
+    bytes uid = 3;
+    int32 cnt = 4;
+}
+
+message S_NoticeUsingGoods {
+    gameconf.GoodsCategory category = 1;
+    int32 id = 2;
+    bytes uid = 3;
+    // 是否正在使用.
+    bool using = 4;
+    int64 use_time = 5;
+}
+
+// 领取礼包请求
+message C_ReqGetGift {
+    string Cdkey = 1;
+}
+// 领取礼包反馈
+message S_RespGetGift {
+    enum ErrCode{
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrNoUser = 2;          //没找到玩家数据
+        ErrNoGiftData = 3;      //获取玩家礼包信息失败
+        ErrLimitPerDay = 4;     //每日领取上限 防刷
+        ErrChannel = 5;         //渠道错误
+        ErrLv = 6;              //等级不符
+        ErrOutTime = 7;         //非领取时间
+        ErrCdkey = 8;           //cdkey错误
+        ErrNoGoodsData = 9;     //获取玩家道具信息失败
+        ErrMarkCdkey = 10;      //db标记cdkey失败(cdkey错误或达到领取上限)
+        ErrAddGoods = 11;       //加道具失败
+        ErrMaxCnt = 12;         //领取上限(作废)
+        ErrAlreadyGet = 13;     //已经领取
+        ErrCfgNotMatch = 14;    //配置key和数据库id不匹配
+    }
+    ErrCode  Result = 1;
+    string   ErrMsg = 2;
+    string   Cdkey = 3;
+}
+
+// 领取taptap预约奖励 cdkey:SCK_TAPTAPDATE1
+message C_ReqGetTapTapDateGift {
+}
+message S_RespGetTapTapDateGift {
+    int32 Result = 1;         // S_RespGetGift.ErrCode
+}
+// 是否已经领取taptap预约奖励
+message C_ReqHaveTapTapGift {
+}
+message S_RespHaveTapTapGift {
+    enum Result{
+        Have = 0;
+        NotHave = 1;
+    }
+    int32 res = 1;
+}
+
+// 请求表情包数据
+message C_ReqMemeData {
+}
+message S_RespMemeData {
+    int32 meme1_id = 1;
+    int32 meme2_id = 2;
+    int32 meme3_id = 3;
+}
+// 请求表情包替换
+message C_ReqMemeReplace {
+    int32 meme_id = 1;
+    int32 slot_num = 2;
+}
+message S_RespMemeReplace {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrSlotNum = 2;
+        ErrNoGoods = 3;
+    }
+    ErrCode code      = 1;
+    int32   meme1_id  = 2;
+    int32   meme2_id  = 3;
+    int32   meme3_id  = 4;
+}
+// 请求表情包交换
+message C_ReqMemeSwap {
+    int32 slot1_num = 1;
+    int32 slot2_num = 2;
+}
+message S_RespMemeSwap {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrSlotNum = 2;
+    }
+    ErrCode code      = 1;
+    int32   meme1_id  = 2;
+    int32   meme2_id  = 3;
+    int32   meme3_id  = 4;
+}
+
+//检查道具过期请求
+message C_ReqCheckItemExpire {
+    gameconf.GoodsCategory  category    = 1;
+}
+
+//打开自选宝箱
+message C_ReqOpenOptionalChest {
+    int32 optional_chest_id = 1;
+    repeated gamedef.Goods picked_goods = 2[packed=false];
+}
+
+message S_RespOpenOptionalChest {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknown = 1;
+        ErrNoConfig = 2;            //chest不存在
+        ErrPickedCntNotMatch = 3;   //选取的物品数量与可选数量不符
+        ErrPickedGoodsNotExist = 4; //选取的物品配置中不存在
+        ErrSubOptionalChest = 5;    //消耗出错
+        ErrAddPickedGoods = 6;      //添加出错
+    }
+
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    int32 optional_chest_id = 3;
+    repeated gamedef.Goods picked_goods = 4[packed=false];
+}
+
+//打开背包获取过期提示和转换数据
+message C_ReqGetGoodsExpireInfo {
+}
+message S_RespGetGoodsExpireInfo {
+    message ExpireReplace {
+        gameconf.GoodsItemTyp expire_item  = 1; //过期道具
+        gameconf.GoodsItemTyp replace_item = 2; //转换道具
+    }
+    repeated gameconf.GoodsItemTyp expire_goods  = 1[packed=false];  //过期提醒
+    repeated ExpireReplace         replace_goods = 2[packed=false];  //过期转换
+}

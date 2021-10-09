@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+// 比赛相关.
+
+package com.mapi.werewolf.gameproto;
+
+// 活动-冲段奖励 请求奖励数据
+message C_ReqActivityLadderLvData {
+}
+//
+message S_RespActivityLadderLvData {
+    message TCanRewardLv {
+        int32 lv = 1;   //等级
+        int64 ts = 2;   //达成时间
+    }
+    int32                   season          = 1;
+    repeated TCanRewardLv   reach_lv        = 2 [packed=false];
+    repeated int32          rewarded_lv     = 3 [packed=false];
+}
+// 活动-冲段奖励 请求领取奖励
+message C_ReqActivityLadderLvReward {
+    int32  ladder_lv = 1;
+}
+//
+message S_RespActivityLadderLvReward {
+    enum ErrCode {
+        Succ = 0;
+        ErrSeason       = 1;    //赛季数据不对
+        ErrRewarded     = 2;    //已领奖
+        ErrUserData     = 3;    //冲段数据错误
+        ErrRewardCfg    = 4;    //奖励配置错误
+        ErrCantReward   = 5;    //条件不满足
+        ErrAddGoods     = 6;    //加道具失败
+        ErrTimeout      = 7;    //活动结束
+    }
+    ErrCode  err_code  = 1;
+    string   err_msg   = 2;
+    int32    ladder_lv = 3;
+}
+
+// 活动-七日狂欢
+message C_ReqActivityTask7Day {
+}
+message S_RespActivityTask7Day {
+    int32   day = 1; //接到第几天
+    bool    over= 2; //是否结束
+}

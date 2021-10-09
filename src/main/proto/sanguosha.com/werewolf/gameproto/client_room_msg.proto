@@ -1,0 +1,714 @@
+syntax = "proto3";
+
+// 房间相关的.
+
+package com.mapi.werewolf.gameproto;
+
+import "sanguosha.com/werewolf/gameproto/gamedef/game_def.proto";
+import "sanguosha.com/werewolf/gameproto/gameconf/game_config.proto";
+import "sanguosha.com/werewolf/gameproto/gamedefv2/game_def.proto";
+
+
+// 请求网易云信安全模式用户令牌.
+message C_ReqUserNetEaseToken {
+}
+
+message S_RespUserNetEaseToken {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    string token = 3;
+}
+
+message C_ReqQuickJoinRoom {
+    gameconf.RoomModeType room_type = 1;
+}
+
+message C_ReqJoinRoom {
+    // 如果是重连, 则填写 0.
+    int32 roomid = 1;
+    string pwd = 2;
+	 uint64 specBindUser = 3; //通过哪个玩家进的观战
+}
+
+message S_RespJoinRoom {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        // 找不到对应的房间.
+        ErrCanNotFindRoom = 2;
+        // 房间不可加入.
+        ErrNotAbleJoin = 3;
+        // 没有可用的座位.
+        ErrNoAvailableSeat = 4;
+        // 需要密码.
+        ErrNeedPwd = 5;
+        // 密码错误.
+        ErrPwd = 6;
+        // 已在其他房间中.
+        ErrAlreadyInOtherRoom = 7;
+        // 没有可用的房间.
+        ErrNoAvailableRoom = 8;
+        // 等级限制.
+        ErrUserLevelLimit = 9;
+        // 游戏冻结(逃跑次数过多).
+        ErrUserGameFreeze = 10;
+        // ErrMatchNotTime
+        ErrMatchNotTime = 11;
+        // ErrMatchExpire 比赛已过期.
+        ErrMatchExpire = 12;
+        // ErrMatchNotSignUp 未报名.
+        ErrMatchNotSignUp = 13;
+        // ErrNotRoomJoin 非以房间方式进入的线下赛
+        ErrNotRoomJoin = 14;
+        // ErrNotMOffline 非线下赛
+        ErrNotMOffline = 15;
+        // 游戏还没开始
+        ErrGameNotStart = 16;
+        // 游戏已经结束
+        ErrGameAlreadyEnd = 17;
+        // 旁观已达上限
+        ErrRoomSpectatorFull = 18;
+        // 延时观战，延时未结束
+        ErrVisualDelayNotOver = 19;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    int32 roomid = 3;
+    // 如果 seatid 是 0, 表示是旁观.
+    int32 seatid = 4;
+    // 加入音频房间的 name.
+    string token = 5;
+    gameconf.RoomModeType room_type = 6;
+    gamedef.MatchID matchid = 7;
+    int32 game_scene = 8;   //游戏场景
+    gamedefv2.LookOnRoomType look_on_type = 9; //旁观类型
+    int32 mission_id = 10;  //客户端需要
+    int64 remain_delay = 11; //延时直播剩余时间，单位秒
+	int32 spec_bind_seat = 12; //观战绑定seat
+}
+
+message C_ReqQuitRoom {
+}
+
+message S_RespQuitRoom {
+    int32 err_code = 1;
+    string err_msg =2;
+}
+
+// 通知客户端匹配成功的两个user信息
+message S_NtfGameLoadingInfo {
+    message User {
+        uint64 userid = 1;
+        gameconf.EthnicType ethnic = 2;
+        int32  seat   = 3;
+        gamedef.PlayerRoleType role_type = 4;
+    }
+    repeated User          users      = 1 [packed=false];
+}
+
+// ddz模式请求游戏阶段信息
+message C_ReqDdzGameStage {
+}
+message S_RespDdzGameStage {
+    gamedefv2.CGameStage   game_stage = 1;
+}
+
+// 通知玩家游戏冻结, 不能进行游戏了.
+message S_NoticeGameFreeze {
+    // 剩余时长, 单位秒.
+    int32 left_duration = 1;
+    // 今日累积逃跑次数.
+    int32 escap_cnt = 2;
+}
+
+// 邀请好友加入房间.
+message C_InviteJoinRoom {
+    repeated uint64 userids = 1 [packed=false];
+}
+
+// 邀请好友加入房间结果.
+message S_InviteJoinRoomResult {
+    enum ErrCode {
+        Succ = 0;
+        Unknow = 1;
+        Offline = 2;
+        InGaming = 3;
+        RoomFull = 4;
+        NotFriend = 5;
+        UserLevelLimit = 6;
+        UserGameFreeze = 7;
+    }
+
+    uint64 userid = 1;
+    ErrCode err_code = 2;
+}
+
+// 收到邀请的请求, 然后通过 follow 协议进入房间 (如果玩家已在房间中, 则需要先请求退出当前房间再 follow).
+message S_NoticeInviteToJoinRoom {
+    uint64 from_userid = 1;
+    int32 roomid = 2;
+    gameconf.RoomModeType room_type = 3;
+    // 邀请进入房间告时告知房间密码.
+    string pwd = 4;
+}
+
+// 请求创建房间, 创建房间后会直接加入房间, 即先下发 S_RespCreateRoom, 再下发 S_RespJoinRoom
+message C_ReqCreateRoom {
+    gameconf.RoomModeType room_type = 1;
+    string pwd = 2;
+}
+
+message S_RespCreateRoom {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        // 密码不合法.
+        ErrPwdIllegal = 2;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    int32 roomid = 3;
+}
+
+message C_ReqJoinMatch {
+    gamedef.MatchType type = 1;
+    int32 season =2;
+}
+
+message S_RespJoinMatch {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        // 时间未到.
+        ErrNotTime = 2;
+        // 已过期.
+        ErrExpire = 3;
+        // 等级限制.
+        ErrLevelLimit = 4;
+        // 玩家逃跑或失败过多.
+        ErrBadRecord = 5;
+        // 已在匹配中.
+        ErrAlreadyInMatch = 6;
+        // 已在房间中.
+        ErrAlreadyInRoom = 7;
+        // 加入房间方式不对
+        ErrJoinMode = 8;
+        // 排名赛的玩家比赛次数超过3次
+        ErrMatchGameRounds = 9;
+        // redis 读取错误
+        ErrRankMatchRedis = 10;
+        // 已过匹配时间
+        ErrJoinExpire = 11;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+    gamedef.MatchType type = 3;
+    int32 season = 4;
+}
+
+// 报告客户端资源等准备完毕可以接收游戏消息了, 在加入房间响应成功后发送.
+message C_ReportClientReadyForGame {
+}
+
+message S_NtfNoGame{}
+
+// 房间内准备.
+message C_ReqReady {
+}
+
+message S_RespReady {
+    int32 err_code = 1;
+    string err_msg = 2;
+}
+
+message C_ReqCancelReady {
+}
+
+message S_RespCancelReady {
+}
+
+message C_ReqRoomStartGame {
+    // 测试使用, 请求成为指定的角色.
+    gamedef.PlayerRoleType test_ask_role = 1;
+    // 测试使用, 指定除自己之外其他的座位中, 至少需要包含的角色 (这些角色仍然会随机分配).
+    repeated gamedef.PlayerRoleType test_other_roles = 2 [packed=false];
+}
+
+message S_RespRoomStartGame {
+    int32 err_code = 1;
+    string err_msg = 2;
+}
+
+message S_IsRoomAbleStartGame {
+    bool able = 1;
+}
+
+message C_ReqKickUser {
+    int32 seatid = 1;
+    uint64 userid = 2;
+}
+
+message S_RespKickUser {
+    bool succ = 1;
+    int32 seatid = 2;
+    uint64 userid = 3;
+}
+
+// 通知玩家被踢出了房间.
+message S_NoticeBeKicked {
+}
+
+// 请求更换座位.
+message C_ReqChangeSeat {
+    // 目标座位, 如果为 0, 表示切换为旁观.
+    int32 seatid = 1;
+}
+
+message S_RespChangeSeat {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        // 已经有用户了.
+        ErrAlreadyHaveUser = 2;
+        // 旁观人数已满.
+        ErrSpectatorFull = 3;
+        // 不可切换座位, 例如游戏已经开始了.
+        ErrUnableChangeSeat = 4;
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+}
+
+// 更换座位事件.
+message S_UserChangeSeat {
+    uint64 userid = 1;
+    // 换到了哪个座位.
+    int32 seatid = 2;
+}
+
+message S_SyncRoomState {
+    message User {
+        // 旁观玩家 seatid 的值为 0
+        int32 seatid = 1;
+        uint64 userid = 2;
+
+        // TODO 考虑移除这些字段, 使用统一的 usersnap 服务接口处理.
+        string nickname = 3;
+        gamedef.SexType sex = 4;
+        string avatar = 5;
+        gameconf.EthnicType ethnic = 6;
+        bool is_robot = 7;
+        uint64  robotid = 8;
+        bool ready = 11;
+        gamedef.UserConnectState connect = 12;
+        int32 avatar_mic = 13;
+        int64 avatar_mic_expire = 14;
+    }
+    repeated User users = 1 [packed=false];
+    // 房主的座位号, 为 0 表示没有.
+    int32 owner = 2;
+    // 你自己的座位号, 旁观为 0.
+    int32 your_seatid = 3;
+
+    // 是否允许插麦.
+    bool speak_interrupt = 4;
+    // 玩家等级限制.
+    int32 user_level_limit = 5;
+    // 房间密码.
+    string pwd = 6;
+    // 是否可旁观.
+    bool spectate = 7;
+    // 旁观是否可发言.
+    bool spectate_chat = 8;
+}
+
+message S_UserJoin {
+    int32 seatid = 1;
+    uint64 userid = 2;
+
+    // TODO 考虑移除这些字段, 使用统一的 usersnap 服务接口处理.
+    string nickname = 3;
+    gamedef.SexType sex = 4;
+    string avatar = 5;
+    int32 avatar_mic = 6;
+    int64 avatar_mic_expire = 7;
+}
+
+message S_UserQuit {
+    int32 seatid = 1;
+    uint64 userid = 3;
+    // 是否是被踢出.
+    bool kicked = 2;
+}
+
+message S_UserReady {
+    int32 seatid = 1;
+    bool ready = 2;
+}
+
+// 玩家的连接状况.
+message S_UserConnect {
+    int32 seatid = 1;
+    gamedef.UserConnectState state = 2;
+}
+
+// 客户端报告进入后台或长时间没有操作.
+message C_ReportUserLeaveState {
+    // true 表示离开, false 表示取消离开状态.
+    bool leave = 1;
+}
+
+message S_NewRoomOwner {
+    int32 seatid = 1;
+}
+
+message C_SendMessageInRoom {
+    string msg = 1;
+	int32 sticker = 2;
+}
+
+message S_UserMessageInRoom {
+    int32 seatid = 1;
+    uint64 userid = 4;
+    string msg = 2;
+	int32 sticker = 3;
+}
+
+// 游戏所有状态都已同步完毕, 玩家可以开始操作了.
+message S_GameSyncOK {
+}
+
+// 设置房间是否可插麦.
+message C_RoomSettingEnableSpeakInterrupt {
+    bool enable = 1;
+}
+
+message S_RoomSettingEnableSpeakInterrupt {
+    bool enable = 1;
+}
+
+message C_RoomSettingUserLevelLimit {
+    int32 level = 1;
+}
+
+message S_RoomSettingUserLevelLimit {
+    int32 level = 1;
+}
+
+message C_RoomSettingPWD {
+    string pwd = 1;
+}
+
+message S_RoomSettingPWD {
+    string pwd = 1;
+}
+
+message C_RoomSettingEnableSpectate {
+    bool enable = 1;
+}
+
+message S_RoomSettingEnableSpectate {
+    bool enable = 1;
+}
+
+message C_RoomSettingEnableSpectatorChat {
+    bool enable = 1;
+}
+
+message S_RoomSettingEnableSpectatorChat {
+    bool enable = 1;
+}
+
+// 请求robot托管
+message C_ReqCGRobotTrustee {
+}
+
+message S_RespCGRobotTrustee {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrNotFindUser = 2;
+    }
+    ErrCode err_code = 1;
+    string  err_msg = 2;
+}
+// 取消robot托管
+message C_ReqCGCancelRobotTrustee {
+}
+
+message S_RespCGCancelRobotTrustee {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrNotFindUser = 2;
+    }
+    ErrCode err_code = 1;
+    string  err_msg = 2;
+}
+
+//卡牌游戏相关协议
+message S_RespJoinCardMatch {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrMatchNotExist = 2;  //Match 不存在
+        ErrAlreadyInMatch = 3; //已在匹配中
+        ErrAlreadyInRoom = 4;  //已经房间里
+    }
+    ErrCode err_code = 1;
+    string err_msg = 2;
+}
+
+
+// 获取旁观房间列表
+message C_ReqSpectateRooms {
+    gameconf.RoomModeType room_type = 1;
+}
+message S_RespSpectateRooms {
+    message RoomInfo {
+        int32 room_id = 1;
+        repeated uint64 user_id = 2 [packed=false];
+    }
+    gameconf.RoomModeType room_type = 1;
+    repeated RoomInfo rooms = 2 [packed=false];
+}
+
+//获取自身所在的比赛房间
+message C_ReqGetSelfPKRoom {
+}
+message S_RespGetSelfPKRoom {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrUserNotExist = 2;  //user 不存在
+    }
+    ErrCode err_code = 1;
+}
+
+//创建比赛房间
+message C_ReqCreatePKRoom {
+    uint32 pwd = 1;           //密码
+    gameconf.PKMode mode = 2; //pk模式
+}
+message S_RespCreatePKRoom {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow       = 1;
+        ErrUserNotExist = 2;//user 不存在
+        ErrInRoom       = 3;//已在房间中
+        ErrOverLimit    = 4;//超过房间数最大限制
+        ErrUseGood      = 5;//使用物品失败
+        ErrRepeated     = 6;//频繁操作
+    }
+    ErrCode err_code = 1;
+}
+//修改比赛房间
+message C_ReqModifyPKRoom {
+    uint32 pwd = 1;
+}
+message S_RespModifyPKRoom {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrUserNotExist = 2;  //user 不存在
+        ErrNotInRoom = 3;   //不在房间中
+        ErrNotOwner = 4;    //不是房主
+        ErrRoomNotWaiting = 5;   //房间不在准备状态
+    }
+    ErrCode err_code = 1;
+    uint32 pwd = 2; //修改后的密码
+}
+// 推送房间信息
+message S_NftPKRoom {
+    gamedef.DBPKRoom room_info = 1;
+}
+
+// 推送房间成员信息
+message S_NftPKRoomUserInfo {
+    gamedef.MsgType type = 1;
+    repeated gamedef.PKUserInfo users_info = 2 [packed=false];
+}
+
+// 推送房间状态信息
+message S_NftPKRoomStatus {
+    gamedef.PKRoomStatus room_status = 1;
+    int64 status_fresh_time = 2;
+}
+
+//加入比赛房间
+message C_ReqJoinPKRoom {
+    uint32 room_id = 1;
+    uint32 pwd = 2;
+}
+message S_RespJoinPKRoom {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow           = 1;
+        ErrUserNotExist     = 2;  //user 不存在
+        ErrInRoom           = 3;  //已在房间中
+        ErrPWD              = 4;  //密码错误
+        ErrRoomNotExist     = 5;  //房间不存在错误
+        ErrRoomNotWaiting   = 6;  //房间不在准备状态
+        ErrUseGood          = 7;  //使用物品失败
+        ErrOverMemberLimit  = 8;  //已达到最大人数
+        ErrRepeated         = 9;  //频繁操作
+    }
+    ErrCode err_code = 1;
+}
+
+//开始比赛
+message C_ReqStartPKRoom {
+}
+message S_RespStartPKRoom {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrUserNotExist = 2;  //user 不存在
+        ErrRoomNotExist = 3; //房间不存在错误
+        ErrNotOwner = 4; //不是房主
+        ErrRoomNotWaiting = 5; //房间不在准备状态
+        ErrUserNotEnough = 6; //房间成员数不足
+    }
+    ErrCode err_code = 1;
+}
+
+//退出比赛房间
+message C_ReqQuitPKRoom {
+}
+message S_RespQuitPKRoom {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrUserNotExist = 2;  //user 不存在
+        ErrNotInRoom = 3; //自己不在房间内
+        ErrOwnerQuitInWaiting = 4; //等待阶段房主不能退出
+    }
+    ErrCode err_code = 1;
+}
+
+enum PKRoomQueryType {
+    Brief = 0;  //简略
+    Detail = 1; //详细
+}
+
+//查询比赛房间
+message C_ReqQueryPKRoom {
+    PKRoomQueryType type = 1;
+    uint32 room_id = 2;
+}
+message S_RespQueryPKRoom {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrUserNotExist = 2;  //user 不存在
+        ErrInRoom = 3;      //已在房间中
+        ErrPWD = 4;         //密码错误
+        ErrRoomNotExist = 5; //房间不存在错误
+        ErrRoomNotWaiting = 6; //房间不在准备状态
+    }
+    ErrCode err_code = 1;
+    PKRoomQueryType type = 2;
+    gamedef.PKRoomBrief room_brief = 3;
+}
+
+//获取联赛列表
+message C_ReqGetPKRoomList {
+    int64 version = 1; //榜单版本
+    uint32 start_index = 2; //起始索引
+    bool has_cache = 3; //客户端是否有缓存
+}
+message S_RespGetPKRoomList {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrUserNotExist = 2;  //user 不存在
+    }
+    ErrCode err_code = 1;
+    int64 version = 2; //榜单版本
+    uint32 start_index = 3; //起始索引
+    repeated gamedef.PKRoomBrief room_list = 4 [packed=false];//部分榜单列表
+}
+
+//比赛排行领奖
+message C_ReqPKRoomReward {
+}
+message S_RespPKRoomReward {
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrUserNotExist = 2;  //user 不存在
+        ErrNotInRoom = 3;    //不在房间中
+        ErrRoomNotReward = 4; //房间未在开奖阶段
+        ErrUserAlreadyGotReward = 5; //用户已领奖
+        ErrUserPickReward = 6; //用户领奖失败
+        ErrRepeated = 7; //频繁操作
+    }
+    ErrCode err_code = 1;
+}
+
+//邀请比赛约战
+message C_ReqInviteMemberPK{
+    uint64 invitee_id = 1; // 受邀者
+}
+message S_RespInviteMemberPK{
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrUserNotExist = 2;  //user 不存在
+        ErrUserInvalid = 3;   //user 状态非法
+        ErrNotInSameRoom = 4; //不在同一房间中
+        ErrNotInRoom = 5; //不在房间中
+        ErrUserNotIdle = 6; //用户不在空闲状态
+        ErrInvalidInvite = 7; //非法邀请
+        ErrCurCardGroup = 8; //没有出战卡组
+        ErrRoomNotFighting = 9; //房间未在战斗中
+        ErrAlreadyInvite = 10; //已邀请
+        ErrInviterOverModeLimit = 11; // 邀请者不符合模式限制
+        ErrInviteeOverModeLimit = 12; // 受邀者不符合模式限制
+    }
+    ErrCode err_code = 1;
+    uint64 inviter_id = 2; // 邀请者
+    uint64 invitee_id = 3; // 受邀者
+}
+
+//接受比赛约战
+message C_ReqAcceptMemberPK{
+    uint64 inviter_id = 1; // 邀请者
+}
+message S_RespAcceptMemberPK{
+    enum ErrCode {
+        Succ = 0;
+        ErrUnknow = 1;
+        ErrUserNotExist = 2;  //user 不存在
+        ErrUserInvalid = 3;   //user 状态非法
+        ErrNotInSameRoom = 4; //不在同一房间中
+        ErrNotInRoom = 5; //不在房间中
+        ErrUserNotIdle = 6; //用户不在空闲状态
+        ErrInvalidInvite = 7; //邀请信息已失效
+        ErrCurCardGroup = 8; //没有出战卡组
+        ErrRoomNotFighting = 9; //房间未在战斗中
+        ErrInviterOverModeLimit = 10; // 邀请者不符合模式限制
+        ErrInviteeOverModeLimit = 11; // 受邀者不符合模式限制
+    }
+    ErrCode err_code = 1;
+    uint64 inviter_id = 2; // 邀请者
+    uint64 invitee_id = 3; // 受邀者
+    int32 delay_sec  = 4;  // 延迟几秒开局
+}
+// 通知pk邀请失效
+message S_NftDisablePKInvite{
+    uint64 inviter_id = 1; // 邀请者
+    uint64 invitee_id = 2; // 受邀者
+}
+// 玩家开始游戏的广播
+message S_NtfPKGameStart{
+    repeated uint64 user_id_list = 1 [packed=false];
+}
+// 用户奖励榜
+message S_NftPKUserRankList {
+   repeated gamedef.PKRankList rank_list = 1 [packed=false]; // 奖励榜单
+}

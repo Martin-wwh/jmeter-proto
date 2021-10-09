@@ -1,0 +1,169 @@
+syntax = "proto3";
+
+// 好友相关.
+
+package com.mapi.werewolf.gameproto;
+
+import "sanguosha.com/werewolf/gameproto/gamedef/game_def.proto";
+
+
+//申请添加好友
+message C_ReqApplyAddFriend {
+	uint64 userid = 1;
+	string apply_msg = 2; // 请求消息
+}
+
+message S_ResApplyAddFriend {
+    string err_msg = 1;
+	uint64 userid = 2;
+}
+
+//确认添加好友
+message C_ReqConfirmAddFriend {
+	uint64 userid = 1;
+	bool refuse = 2;
+}
+
+message S_ResConfirmAddFriend {
+    string err_msg = 1;
+	uint64 userid = 2;
+    bool refuse = 3;
+}
+
+//删除好友
+message C_ReqDelFriend {
+	uint64 userid = 1;
+	bool is_add_blacklist = 2; //是否加入黑名单
+}
+
+message S_ResDelFriend {
+	string err_msg = 1;
+	uint64 userid = 2;
+}
+
+//从好友黑名单删除
+message C_ReqDelFromFriendBlackList {
+	uint64 userid = 1;
+}
+message S_ResDelFromFriendBlackList {
+	string err_msg = 1;
+}
+// 更新好友黑名单
+message S_NtfUpdateFriendBlackList {
+	gamedef.MsgType typ = 1;
+	repeated uint64 userid_list = 2 [packed=false];
+}
+
+//好友聊天
+message C_ReqFriendChat {
+	uint64 userid = 1;
+	string msg = 2;
+	int32 bubble_good_id = 3;
+}
+
+message S_ResFriendChat {
+	string err_msg = 1;
+	uint64 from = 2;
+    uint64 to = 3;
+	int64 ts = 4;
+	string msg = 5;
+	int32 bubble_good_id = 6;
+}
+
+// 取消好友约战
+message C_ReqCancelDateFriend {
+	uint64 friendid = 1;
+}
+
+message S_RespCancelDateFriend {
+	int32 err_code = 1;
+	string err_msg = 2;
+	uint64 friendid = 3;
+	int64 dateTs = 4;
+}
+
+// 接收约战
+message C_ReqAcceptFriendDate {
+	gamedef.GameModeType gameType = 1;
+	uint64 friendid = 2;
+	int64 dateTs = 3;
+}
+
+message S_RespAcceptFriendDate {
+	int32 err_code = 1;
+	string err_msg = 2;
+	// 开赛延时
+	int32 delaySec = 3;
+	int64 dateTs = 4;
+	uint64 friendid = 5;
+}
+
+//跟随好友
+message C_ReqFollowFriend {
+	uint64 userid = 1;
+}
+
+message S_ResFollowFriend {
+	string err_msg = 1;
+}
+
+//获取好友列表
+message C_ReqFriendList {
+}
+message S_ResFriendList {
+	string err_msg = 1;
+    gamedef.Friend friend = 2;
+}
+
+//获取好友数据
+message C_ReqFriendsData {
+	repeated uint64 user_id_list = 1 [packed=false]; //为空默认所有好友
+}
+message S_ResFriendsData {
+	string err_msg = 1;
+	repeated gamedef.FriendData friend_list = 2 [packed=false];
+}
+
+message S_NoticeApplyAddFriend {
+    uint64 userid = 1;
+    string apply_msg = 2;
+}
+
+message S_NoticeConfirmAddFriend {
+    uint64 userid = 1;
+    bool refuse = 2;
+}
+
+message S_NoticeDelFriend {
+    uint64 userid = 1;
+}
+
+//获取好友状态
+message C_ReqFriendStatus {
+    repeated uint64 user_id = 1 [packed=false];
+}
+
+message S_ResFriendStatus {
+	string err_msg = 1;
+    repeated gamedef.FriendStatus friendStatus = 2 [packed=false];
+}
+
+message C_ReqRecommendFris {
+    int32 ladder_lv_min = 1;
+    int32 ladder_lv_max = 2;
+    int32 gender        = 3;
+    bool  same_city     = 4;
+}
+
+message S_RespRecommendFris {
+    repeated uint64 RecUserIDs = 1 [packed=false];
+}
+
+message S_NtfCreateGuildToFriend {
+	uint64 From      = 1; //创建者id
+	uint64 To        = 2; //好友id
+	uint32 GuildID   = 3; //公会id
+	string GuildName = 4; //公会名称
+	string Creator   = 5; //创建者昵称
+	int64  Ts        = 6; //时间戳
+}
